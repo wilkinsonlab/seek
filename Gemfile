@@ -98,6 +98,8 @@ gem 'bootstrap-tagsinput-rails'
 gem 'bootstrap-typeahead-rails'
 gem 'handlebars_assets'
 
+gem 'openbis-api-gem', :git=>"https://github.com/FAIRdom/openbis-api-gem.git"
+
 group :assets do
   gem 'turbo-sprockets-rails3'
   gem 'yui-compressor'

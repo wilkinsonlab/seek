@@ -1,4 +1,10 @@
 GIT
+  remote: https://github.com/FAIRdom/openbis-api-gem.git
+  revision: cdbb9f57a55e15eed38d705eb3741201fd32a445
+  specs:
+    openbis-api-gem (0.2.0)
+
+GIT
   remote: https://github.com/SysMO-DB/acts_as_activity_logged.git
   revision: da0b6d8e4ccabfa231c39aa89522c8ba73f03c0e
   specs:
@@ -794,6 +800,7 @@ DEPENDENCIES
   mysql2
   nokogiri
   open_id_authentication!
+  openbis-api-gem!
   passenger
   pg
   piwik_analytics!
