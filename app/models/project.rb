@@ -224,6 +224,10 @@ class Project < ActiveRecord::Base
     end
   end
 
+  def openbis_supported?
+    openbis_password && openbis_username && openbis_endpoint
+  end
+
   #allows a new project to be spawned off as a descendant of this project, retaining the same membership but existing
   #as a new project entity. attributes may be passed to override those being copied. The ancestor and memberships will
   #automatically be assigned and carried over, and the avatar will be set to nil
