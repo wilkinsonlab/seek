@@ -29,6 +29,11 @@ class AssaysController < ApplicationController
   end
 
   def view_openbis
+
+    if (params[:clear_cache])
+      Rails.cache.clear
+    end
+
     p = @assay.openbis_project
     Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_endpoint)
     if params[:experiment_perm_id]

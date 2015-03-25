@@ -12,12 +12,27 @@ module Seek
         self
       end
 
+      def dataset_type_text
+        txt = dataset_type_description
+        txt = dataset_type_code if txt.blank?
+        txt
+      end
+
       def dataset_type_description
         dataset_type["description"]
       end
 
       def dataset_type_code
         dataset_type["code"]
+      end
+
+      def samples
+        unless @samples
+          @samples = sample_ids.collect do |id|
+            Seek::Openbis::Zample.new(id)
+          end
+        end
+        @samples
       end
 
       def type_name

@@ -1,0 +1,25 @@
+<tr>
+  <td>
+    <%= dataset.code %>
+  </td>
+  <td>
+    <%= format_openbis_properties(dataset.properties) %>
+  </td>
+  <td>
+    <%= dataset.dataset_type_text %>
+  </td>
+  <td>
+    <%= dataset.samples.first.code %>
+  </td>
+  <td>
+    <%= date_as_string(dataset.registration_date,false) %>
+  </td>
+  <td>
+    <%= date_as_string(dataset.modification_date,false) %>
+  </td>
+
+  <td>
+    <%= dataset.perm_id %>
+  </td>
+
+</tr>

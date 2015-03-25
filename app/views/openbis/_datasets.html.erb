@@ -1,0 +1,18 @@
+<%= folding_panel("openBIS Datasets",false) do %>
+    <table class="table table-bordered table-striped">
+      <thead>
+      <th>Code</th>
+      <th>Metadata</th>
+      <th>Dataset type</th>
+      <th>Sample</th>
+      <th>Created</th>
+      <th>Last modified</th>
+      <th>PermId</th>
+      </thead>
+      <tbody>
+      <% datasets.each do |dataset| %>
+          <%= render :partial=>"openbis/dataset",:object=>dataset %>
+      <% end %>
+      </tbody>
+    </table>
+<% end %>

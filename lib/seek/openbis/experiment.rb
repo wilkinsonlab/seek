@@ -2,7 +2,8 @@ module Seek
   module Openbis
     class Experiment < Entity
 
-      attr_reader :experiment_type,:experiment_id,:sample_ids, :identifier
+      attr_reader :experiment_type,:experiment_id,:sample_ids, :identifier,:dataset_ids
+
 
       def populate_from_json(json)
         @experiment_type=json["experiment_type"]
@@ -41,7 +42,7 @@ module Seek
 
       def datasets
         unless @datasets
-          @datasets = sample_ids.collect do |id|
+          @datasets = dataset_ids.collect do |id|
             Seek::Openbis::Dataset.new(id)
           end
         end

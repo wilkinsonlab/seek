@@ -3,4 +3,12 @@
     Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
 %>
 
-<%= render :partial=>"openbis/experiments",:locals=>{:experiments=>@experiments} -%>
+<%= render :partial=>"openbis/experiments",:object=>@experiments -%>
+
+<% if @experiments.count==1
+        @experiment=@experiments[0]
+%>
+<%= render :partial=>'openbis/samples',:object=>@experiment.samples.select{|s| s.properties.keys.count>2} %>
+<%= render :partial=>'openbis/datasets',:object=>@experiment.datasets %>
+
+<% end %>

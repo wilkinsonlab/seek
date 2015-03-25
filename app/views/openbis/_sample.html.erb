@@ -1,0 +1,22 @@
+<tr>
+  <td>
+    <%= sample.identifier %>
+  </td>
+  <td>
+    <%= format_openbis_properties(sample.properties) %>
+  </td>
+  <td>
+    <%= sample.sample_type_text %>
+  </td>
+  <td>
+    <%= date_as_string(sample.registration_date,false) %>
+  </td>
+  <td>
+    <%= date_as_string(sample.modification_date,false) %>
+  </td>
+
+  <td>
+    <%= sample.perm_id %>
+  </td>
+
+</tr>
