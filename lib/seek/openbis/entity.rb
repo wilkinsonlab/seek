@@ -15,7 +15,7 @@ module Seek
       end
 
       def populate_from_perm_id perm_id
-        json = query_instance.query({:type=>type_name,:attribute=>"permId",:attribute_value=>perm_id})
+        json = do_query_by_perm_id(perm_id)
         populate_from_json(json[json_key][0])
       end
 
@@ -26,15 +26,22 @@ module Seek
         @perm_id=json["permId"]
         @properties=json["properties"]
         @registrator=json["registerator"]
-        @registration_date=Time.at(json["registration_date"].to_i/1000).to_datetime
-        @modification_date=Time.at(json["modification_date"].to_i/1000).to_datetime
+        @registration_date=Time.at(json["registrationDate"].to_i/1000).to_datetime
+        @modification_date=Time.at(json["modificationDate"].to_i/1000).to_datetime
         self
       end
 
       def all
-        json = query_instance.query({:type=>type_name,:attribute=>"permId"})
+        json = do_query_by_perm_id
         json[json_key].collect do |json|
           self.class.new.populate_from_json(json)
+        end
+      end
+
+      def do_query_by_perm_id perm_id=""
+        cache_key = "openbis-#{type_name}-#{perm_id}"
+        Rails.cache.fetch(cache_key) do
+          query_instance.query({:type=>type_name,:attribute=>"permId",:attribute_value=>perm_id})
         end
       end
 

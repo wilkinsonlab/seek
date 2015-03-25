@@ -1,13 +1,6 @@
 <%
     project = @assay.openbis_project
-    #instance = Fairdom::OpenbisApi::Query.new(project.openbis_username, project.openbis_password, project.openbis_endpoint)
     Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
-    # type='Experiment'
-    # property = 'NAME'
-    # value = '/MS_DATA/L_TRIPLE-TOF/2013-04'
-    # json_result = instance.query({:type=>'Experiment',:attribute=>"permId",:attribute_value=>"20150319155838151-305"})["experiments"]
 %>
 
-<%= Seek::Openbis::Experiment.all %>
-<%#= Seek::Openbis::Zample.all %>
-<%#= Seek::Openbis::Dataset.all %>
+<%= render :partial=>"openbis/experiments",:locals=>{:experiments=>@experiments} -%>

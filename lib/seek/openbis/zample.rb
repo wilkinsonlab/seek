@@ -8,6 +8,7 @@ module Seek
         super(json)
         @sample_type=json["sample_type"]
         @dataset_ids = json["datasets"]
+        @experiment_id = json["experiment"]
         self
       end
 

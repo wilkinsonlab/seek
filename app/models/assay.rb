@@ -69,6 +69,10 @@ class Assay < ActiveRecord::Base
   end if Seek::Config.solr_enabled
 
 
+  def openbis_experiments
+    Seek::Openbis::Experiment.all
+  end
+
   def openbis_supported?
     !openbis_project.nil?
   end

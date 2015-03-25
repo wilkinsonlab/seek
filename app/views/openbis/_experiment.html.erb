@@ -1,0 +1,25 @@
+<tr>
+  <td>
+    <%= link_to(experiment.identifier,view_openbis_assay_path(@assay,:experiment_perm_id=>experiment.perm_id)) %>
+  </td>
+  <td>
+    <%= experiment.comment %>
+  </td>
+  <td>
+    <%= experiment.experiment_type_text %>
+  </td>
+  <td>
+    <%= date_as_string(experiment.registration_date,false) %>
+  </td>
+  <td>
+    <%= date_as_string(experiment.modification_date,false) %>
+  </td>
+  <td>
+    <%= experiment.registrator %>
+  </td>
+
+  <td>
+    <%= experiment.perm_id %>
+  </td>
+
+</tr>

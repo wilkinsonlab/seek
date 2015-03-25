@@ -1,0 +1,23 @@
+<div class="panel panel-default">
+  <div class="panel-heading clearfix">
+    openBIS experiments
+  </div>
+  <div class="panel-body">
+    <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+      <th>ID</th>
+      <th>Comment</th><th>Experiment type</th><th>Created</th><th>Last modified</th>
+      <th>Creator</th>
+      <th>PermId</th>
+      </thead>
+      <tbody>
+      <% experiments.each do |exp| %>
+          <%= render :partial=>"openbis/experiment",:object=>exp %>
+      <% end %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+

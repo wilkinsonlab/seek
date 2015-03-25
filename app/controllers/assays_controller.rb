@@ -28,6 +28,17 @@ class AssaysController < ApplicationController
 
   end
 
+  def view_openbis
+    p = @assay.openbis_project
+    Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_endpoint)
+    if params[:experiment_perm_id]
+      @experiments=[Seek::Openbis::Experiment.new(params[:experiment_perm_id])]
+    else
+      @experiments = @assay.openbis_experiments
+    end
+
+  end
+
   def new_object_based_on_existing_one
     @existing_assay =  Assay.find(params[:id])
     @assay = @existing_assay.clone_with_associations
