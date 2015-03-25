@@ -69,6 +69,14 @@ class Assay < ActiveRecord::Base
   end if Seek::Config.solr_enabled
 
 
+  def openbis_supported?
+    !openbis_project.nil?
+  end
+
+  def openbis_project
+    projects.detect{|p| p.openbis_supported?}
+  end
+
   def project_ids
     projects.map(&:id)
   end

@@ -249,6 +249,7 @@ SEEK::Application.routes.draw do
     member do
       post :update_annotations_ajax
       get :new_object_based_on_existing_one
+      get :view_openbis
     end
     resources :people,:projects,:investigations,:studies,:models,:sops,:data_files,:publications,:strains,:only=>[:index]
   end

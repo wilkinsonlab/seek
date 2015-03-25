@@ -7,7 +7,9 @@ class AssaysController < ApplicationController
   before_filter :assays_enabled?
 
   before_filter :find_assets, :only=>[:index]
-  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one]
+  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one,:view_openbis]
+
+  before_filter :openbis_supported,:only=>[:view_openbis]
 
   #project_membership_required_appended is an alias to project_membership_required, but is necessary to include the actions
   #defined in the application controller
@@ -16,6 +18,15 @@ class AssaysController < ApplicationController
   include Seek::Publishing::PublishingCommon
 
   include Seek::BreadCrumbs
+
+  def openbis_supported
+
+    unless @assay.openbis_supported?
+      flash[:error]="openBIS is not supported for this Assay. None of the related projects have been configured to point at an openBIS installation."
+      return false
+    end
+
+  end
 
   def new_object_based_on_existing_one
     @existing_assay =  Assay.find(params[:id])

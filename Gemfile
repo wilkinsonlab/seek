@@ -98,7 +98,7 @@ gem 'bootstrap-tagsinput-rails'
 gem 'bootstrap-typeahead-rails'
 gem 'handlebars_assets'
 
-gem 'openbis-api-gem', :git=>"https://github.com/FAIRdom/openbis-api-gem.git"
+gem 'openbis-api-gem', :git=>"https://github.com/FAIRdom/openbis-api-gem.git",:branch=>"hacking-for-demo"
 
 group :assets do
   gem 'turbo-sprockets-rails3'

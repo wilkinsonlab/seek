@@ -1,8 +1,9 @@
 GIT
   remote: https://github.com/FAIRdom/openbis-api-gem.git
-  revision: cdbb9f57a55e15eed38d705eb3741201fd32a445
+  revision: 670b172b4eb459ce4db19e49c692e1f5661edf9b
+  branch: hacking-for-demo
   specs:
-    openbis-api-gem (0.2.0)
+    openbis-api-gem (0.3.2)
 
 GIT
   remote: https://github.com/SysMO-DB/acts_as_activity_logged.git
