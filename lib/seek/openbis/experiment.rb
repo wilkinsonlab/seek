@@ -26,10 +26,6 @@ module Seek
         txt
       end
 
-      def comment
-        properties["COMMENT"] || ""
-      end
-
       def samples
         unless @samples
           @samples = sample_ids.collect do |id|

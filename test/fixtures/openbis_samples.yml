@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  title: MyString
+  description: MyString
+  perm_id: MyString
+  last_sync: 2015-03-26 14:45:22
+  policy_id: 1
+  contributor_type: MyString
+  contributor_id: 1
+  uuid: MyString
+  last_used_at: 2015-03-26 14:45:22
+
+two:
+  title: MyString
+  description: MyString
+  perm_id: MyString
+  last_sync: 2015-03-26 14:45:22
+  policy_id: 1
+  contributor_type: MyString
+  contributor_id: 1
+  uuid: MyString
+  last_used_at: 2015-03-26 14:45:22

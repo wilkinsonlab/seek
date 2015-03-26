@@ -1,7 +1,7 @@
-<%
-
-%>
 <tr>
+  <td>
+    <%= check_box_tag "dataset_#{dataset.perm_id}" %>
+  </td>
   <td>
     <a name="<%= dataset.perm_id %>"></a>
     <%= dataset.code %>

@@ -42,6 +42,10 @@ module Seek
         end
       end
 
+      def comment
+        properties["COMMENT"] || ""
+      end
+
       def do_query_by_perm_id perm_id=""
         cache_key = "openbis-#{type_name}-#{perm_id}"
         Rails.cache.fetch(cache_key) do

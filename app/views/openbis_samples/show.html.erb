@@ -1,0 +1,36 @@
+<%= render :partial => "general/item_title", :locals => {:item => @sample} -%>
+
+<div class="row">
+  <div class="col-md-9 col-sm-8 box_about_actor">
+    <%= item_description @sample.description -%>
+    <div class="row">
+      <div class="col-md-6">
+        <%= format_openbis_properties(@sample.properties) %>
+      </div>
+      <div class="col-md-6">
+        <p>
+          <strong>Created on Openbis</strong>: <%= date_as_string(@sample.registration_date,true) %>
+          <br/>
+          <strong>Modified on Openbis</strong>: <%= date_as_string(@sample.modification_date,true) %>
+          <br/>
+          <strong>Last synchronised</strong>: <%= date_as_string(@sample.last_sync,true) %>
+        </p>
+        <p>
+          <strong>Openbis permID</strong>: <%= @sample.perm_id %>
+          <br/>
+          <strong>Openbis Code</strong>: <%= @sample.code %>
+          <br/>
+          <strong>Openbis Identifier</strong>: <%= @sample.identifier %>
+        </p>
+        <%= render :partial => "assets/usage_info", :locals => {:resource => @sample, :versioned_resource => @sample} -%>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-4">
+    <%= render :partial => "assets/resource_main_content_right", :locals => {:resource => @sample, :creators => [@sample.contributor.person]} %>
+  </div>
+</div>
+
+
+
+<%= render :partial => "general/items_related_to", :object => @openbis_sample %>

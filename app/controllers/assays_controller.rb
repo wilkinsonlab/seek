@@ -7,7 +7,7 @@ class AssaysController < ApplicationController
   before_filter :assays_enabled?
 
   before_filter :find_assets, :only=>[:index]
-  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one,:view_openbis]
+  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one,:view_openbis,:add_openbis_stuff]
 
   before_filter :openbis_supported,:only=>[:view_openbis]
 
@@ -34,6 +34,11 @@ class AssaysController < ApplicationController
       Rails.cache.clear
     end
 
+    if (params[:wipe])
+      @assay.openbis_samples.destroy_all
+      @assay.data_files.destroy_all
+    end
+
     p = @assay.openbis_project
     Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_endpoint)
     if params[:experiment_perm_id]
@@ -41,6 +46,39 @@ class AssaysController < ApplicationController
     else
       @experiments = @assay.openbis_experiments.sort_by(&:modification_date).reverse
     end
+
+    render :template=>"openbis/view_openbis"
+  end
+
+  def add_openbis_stuff
+
+    #gather the params
+    item_ids = params.keys.select do |p|
+      p.start_with?("sample") || p.start_with?("dataset")
+    end
+
+    items = item_ids.collect do |id|
+      type=id.split("_")[0]
+      perm_id=id.split("_")[1]
+      if type=="sample"
+        Seek::Openbis::Zample.new(perm_id)
+      elsif type=="dataset"
+        #Seek::Openbis::Dataset.new(perm_id)
+      else
+        raise "Unrecognised type #{type}"
+      end
+    end.compact
+
+
+    items.each do |item|
+      if (item.is_a?(Seek::Openbis::Zample))
+        sample = OpenbisSample.load_from_openbis_sample(item)
+        sample.assay_id=@assay.id
+        sample.save!
+      end
+    end
+
+    redirect_to @assay
 
   end
 

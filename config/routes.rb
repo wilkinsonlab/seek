@@ -1,5 +1,13 @@
 SEEK::Application.routes.draw do
 
+  resources :openbis_samples do
+    member do
+      post :update_annotations_ajax
+    end
+
+  end
+
+
   mount TavernaPlayer::Engine, :at => (SEEK::Application.config.relative_url_root || "/")
 
   resources :scales do
@@ -250,8 +258,9 @@ SEEK::Application.routes.draw do
       post :update_annotations_ajax
       get :new_object_based_on_existing_one
       get :view_openbis
+      post :add_openbis_stuff
     end
-    resources :people,:projects,:investigations,:studies,:models,:sops,:data_files,:publications,:strains,:only=>[:index]
+    resources :people,:projects,:investigations,:studies,:models,:openbis_samples,:sops,:data_files,:publications,:strains,:only=>[:index]
   end
 
 

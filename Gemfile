@@ -100,6 +100,8 @@ gem 'handlebars_assets'
 
 gem 'openbis-api-gem', :git=>"https://github.com/FAIRdom/openbis-api-gem.git",:branch=>"hacking-for-demo"
 
+gem 'quiet_assets', group: :development
+
 group :assets do
   gem 'turbo-sprockets-rails3'
   gem 'yui-compressor'

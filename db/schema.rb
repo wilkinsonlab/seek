@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150323152052) do
+ActiveRecord::Schema.define(:version => 20150326151951) do
 
   create_table "activity_logs", :force => true do |t|
     t.string   "action"
@@ -789,6 +789,38 @@ ActiveRecord::Schema.define(:version => 20150323152052) do
     t.integer  "number",             :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "openbis_sample_auth_lookup", :id => false, :force => true do |t|
+    t.integer "user_id"
+    t.integer "asset_id"
+    t.boolean "can_view"
+    t.boolean "can_manage"
+    t.boolean "can_edit"
+    t.boolean "can_download"
+    t.boolean "can_delete",   :default => false
+  end
+
+  create_table "openbis_samples", :force => true do |t|
+    t.string   "title"
+    t.string   "description"
+    t.string   "perm_id"
+    t.datetime "last_sync"
+    t.integer  "policy_id"
+    t.string   "contributor_type"
+    t.integer  "contributor_id"
+    t.string   "uuid"
+    t.datetime "last_used_at"
+    t.string   "openbis_json"
+    t.integer  "assay_id"
+    t.string   "first_letter"
+    t.datetime "created_at",       :null => false
+    t.datetime "updated_at",       :null => false
+  end
+
+  create_table "openbis_samples_projects", :id => false, :force => true do |t|
+    t.integer "project_id"
+    t.integer "openbis_sample_id"
   end
 
   create_table "organisms", :force => true do |t|

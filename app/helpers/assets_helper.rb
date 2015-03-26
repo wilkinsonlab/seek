@@ -160,7 +160,7 @@ module AssetsHelper
   def relatable_types
     {"Person" => {}, "Project" => {}, "Institution" => {}, "Investigation" => {},
      "Study" => {}, "Assay" => {}, "Specimen" => {}, "Sample" => {}, "DataFile" => {}, "Model" => {}, "Sop" => {}, "Publication" => {}, "Presentation" => {}, "Event" => {},
-     "Workflow" => {}, "TavernaPlayer::Run" => {}, "Sweep" => {}, "Strain" => {}
+     "Workflow" => {}, "TavernaPlayer::Run" => {}, "Sweep" => {}, "Strain" => {}, "OpenbisSample" => {}
     }
 
   end

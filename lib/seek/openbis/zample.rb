@@ -12,10 +12,6 @@ module Seek
         super(json)
       end
 
-      def comment
-        properties["COMMENT"]
-      end
-
       def datasets
         unless @datasets
           @datasets = dataset_ids.collect do |id|

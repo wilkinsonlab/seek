@@ -1,0 +1,20 @@
+<%
+    project = @assay.openbis_project
+    Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
+%>
+
+<%= render :partial=>"openbis/experiments",:object=>@experiments -%>
+
+<% if @experiments.count==1
+        @experiment=@experiments[0]
+%>
+    <%= form_tag add_openbis_stuff_assay_path(@assay),:method=>:post do %>
+        <%= submit_tag "Submit",:class => 'btn btn-primary' %>
+
+        <%= render :partial => 'openbis/samples', :object => @experiment.samples %>
+        <%#= render :partial => 'openbis/datasets', :object => @experiment.datasets %>
+
+        <%= submit_tag "Submit",:class => 'btn btn-primary' %>
+
+    <% end %>
+<% end %>

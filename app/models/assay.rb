@@ -45,6 +45,8 @@ class Assay < ActiveRecord::Base
 
   has_one :investigation,:through=>:study
 
+  has_many :openbis_samples
+
   validates_presence_of :assay_type_uri
   validates_presence_of :technology_type_uri, :unless=>:is_modelling?
   validates_presence_of :study, :message=>" must be selected"
