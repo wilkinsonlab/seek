@@ -1,5 +1,6 @@
 <tr>
   <td>
+    <a name="<%= sample.perm_id %>"></a>
     <%= sample.identifier %>
   </td>
   <td>
@@ -7,6 +8,9 @@
   </td>
   <td>
     <%= sample.sample_type_text %>
+  </td>
+  <td>
+    <%= dataset_links(sample.datasets,@experiment.datasets)  %>
   </td>
   <td>
     <%= date_as_string(sample.registration_date,false) %>

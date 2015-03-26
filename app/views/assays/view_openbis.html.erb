@@ -8,7 +8,7 @@
 <% if @experiments.count==1
         @experiment=@experiments[0]
 %>
-<%= render :partial=>'openbis/samples',:object=>@experiment.samples.select{|s| s.properties.keys.count>2} %>
+<%= render :partial=>'openbis/samples',:object=>@experiment.samples %>
 <%= render :partial=>'openbis/datasets',:object=>@experiment.datasets %>
 
 <% end %>

@@ -16,6 +16,15 @@ module Seek
         properties["COMMENT"]
       end
 
+      def datasets
+        unless @datasets
+          @datasets = dataset_ids.collect do |id|
+            Seek::Openbis::Dataset.new(id)
+          end
+        end
+        @datasets.sort_by(&:modification_date).reverse
+      end
+
       def sample_type_text
         txt = sample_type_description
         txt = sample_type_code if txt.blank?

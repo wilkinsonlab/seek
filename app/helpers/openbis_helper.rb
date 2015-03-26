@@ -17,4 +17,24 @@ module OpenbisHelper
 
   end
 
+  def dataset_links datasets,experiment_datasets
+    datasets.collect do |ds|
+      if experiment_datasets.include?(ds)
+        link_to(ds.code,"##{ds.perm_id}")
+      else
+        ds.code
+      end
+    end.join(", ").html_safe
+  end
+
+  def sample_links samples, experiment_samples
+    samples.collect do |sample|
+      if experiment_samples.include?(sample)
+        link_to(sample.code,"##{sample.perm_id}")
+      else
+        sample.code
+      end
+    end.join(", ").html_safe
+  end
+
 end

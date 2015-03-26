@@ -8,6 +8,10 @@ module Seek
         self.new.all
       end
 
+      def ==(other)
+        self.perm_id == other.perm_id
+      end
+
       def initialize(perm_id=nil)
         if (perm_id)
           populate_from_perm_id(perm_id)

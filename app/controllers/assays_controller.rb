@@ -39,7 +39,7 @@ class AssaysController < ApplicationController
     if params[:experiment_perm_id]
       @experiments=[Seek::Openbis::Experiment.new(params[:experiment_perm_id])]
     else
-      @experiments = @assay.openbis_experiments
+      @experiments = @assay.openbis_experiments.sort_by(&:modification_date).reverse
     end
 
   end

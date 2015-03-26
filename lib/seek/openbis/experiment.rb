@@ -4,7 +4,6 @@ module Seek
 
       attr_reader :experiment_type,:experiment_id,:sample_ids, :identifier,:dataset_ids
 
-
       def populate_from_json(json)
         @experiment_type=json["experiment_type"]
         @dataset_ids = json["datasets"]
@@ -35,7 +34,7 @@ module Seek
         unless @samples
           @samples = sample_ids.collect do |id|
             Seek::Openbis::Zample.new(id)
-          end
+          end.sort_by(&:modification_date).reverse
         end
         @samples
       end
@@ -46,10 +45,8 @@ module Seek
             Seek::Openbis::Dataset.new(id)
           end
         end
-        @datasets
+        @datasets.sort_by(&:modification_date).reverse
       end
-
-
 
       def type_name
         'Experiment'
