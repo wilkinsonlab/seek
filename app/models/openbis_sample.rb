@@ -3,6 +3,8 @@ class OpenbisSample < ActiveRecord::Base
 
   delegate :modification_date,:registration_date,:code,:properties,:identifier, :to=>:internal_sample
 
+  has_and_belongs_to_many :data_files
+
   acts_as_asset
 
   searchable(:auto_index=>false) do
