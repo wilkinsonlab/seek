@@ -3,21 +3,47 @@
     openBIS experiments
   </div>
   <div class="panel-body">
+    <div class="text-right form-inline">
+      <div class="form-group">
+        <label>Filter</label>
+        <input type="text" id="filter-exp" class="form-control" onkeyup="filterExperiments(this.value);"/>
+        <button class="btn btn-default" onclick="clearFilter(); return false">Clear</button>
+      </div>
+    </div>
+
     <div class="table-responsive">
-    <table class="table table-bordered table-striped">
-      <thead>
-      <th>ID</th>
-      <th>Comment</th><th>Experiment type</th><th>Created</th><th>Last modified</th>
-      <th>Creator</th>
-      <th>PermId</th>
-      </thead>
-      <tbody>
-      <% experiments.each do |exp| %>
-          <%= render :partial=>"openbis/experiment",:object=>exp %>
-      <% end %>
-      </tbody>
-    </table>
+      <table class="table table-bordered table-striped" id="experiments-table">
+        <thead>
+        <th>ID</th>
+        <th>Comment</th><th>Experiment type</th><th>Created</th><th>Last modified</th>
+        <th>Creator</th>
+        <th>PermId</th>
+        </thead>
+        <tbody>
+        <% experiments.each do |exp| %>
+            <%= render :partial=>"openbis/experiment",:object=>exp %>
+        <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
+<script>
+    function filterExperiments(text) {
+        text = text.toLowerCase();
+
+        if(text.length > 0) {
+            $j('#experiments-table tbody tr').hide();
+            $j('#experiments-table tr[data-filter-text*=' + text + ']').show();
+        }
+        else {
+            $j('#experiments-table tbody tr').show();
+        }
+    }
+
+    function clearFilter() {
+        $j('#filter-exp').val('');
+        $j('#experiments-table tbody tr').show();
+    }
+</script>
