@@ -1,6 +1,10 @@
 <tr>
   <td>
-    <%= check_box_tag "datasets[#{dataset.perm_id}]" %>
+    <% if @dataset_perm_ids.include?(dataset.perm_id) %>
+        <%= image('tick') -%>
+    <% else %>
+        <%= check_box_tag "datasets[#{dataset.perm_id}]" %>
+    <% end %>
   </td>
   <td>
     <a name="<%= dataset.perm_id %>"></a>

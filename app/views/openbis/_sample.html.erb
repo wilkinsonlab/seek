@@ -2,7 +2,11 @@
   <div class="openbis-sample-title">
     <div class="row">
       <div class="col-xs-8">
-        <%= check_box_tag "samples[#{sample.perm_id}]" %>
+        <% if @sample_perm_ids.include?(sample.perm_id) %>
+            <%= image('tick') -%>
+        <% else %>
+            <%= check_box_tag "samples[#{sample.perm_id}]" %>
+        <% end %>
         <a><%= sample.identifier %> <span class="caret"></span></a>
         <span class="subtle">(<%= sample.sample_type_text %>)</span>
       </div>
