@@ -42,7 +42,6 @@ class OpenbisSample < ActiveRecord::Base
     User.current_user.person
   end
 
-
   def internal_sample
     @internal ||= Seek::Openbis::Zample.new(perm_id)
   end

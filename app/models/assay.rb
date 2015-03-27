@@ -72,7 +72,11 @@ class Assay < ActiveRecord::Base
 
 
   def openbis_experiments
-    Seek::Openbis::Experiment.all
+    if study.openbis_experiment_id
+      [study.openbis_experiment]
+    else
+      Seek::Openbis::Experiment.all
+    end
   end
 
   def openbis_supported?
