@@ -52,30 +52,13 @@ class AssaysController < ApplicationController
 
   def add_openbis_stuff
 
-    #gather the params
-    item_ids = params.keys.select do |p|
-      p.start_with?("sample") || p.start_with?("dataset")
-    end
+    sample_ids = params["samples"].try(:keys) || []
+    dataset_ids = params["datasets"].try(:keys) || []
 
-    items = item_ids.collect do |id|
-      type=id.split("_")[0]
-      perm_id=id.split("_")[1]
-      if type=="sample"
-        Seek::Openbis::Zample.new(perm_id)
-      elsif type=="dataset"
-        #Seek::Openbis::Dataset.new(perm_id)
-      else
-        raise "Unrecognised type #{type}"
-      end
-    end.compact
-
-
-    items.each do |item|
-      if (item.is_a?(Seek::Openbis::Zample))
-        sample = OpenbisSample.load_from_openbis_sample(item)
-        sample.assay_id=@assay.id
-        sample.save!
-      end
+    sample_ids.each do |id|
+      sample = OpenbisSample.load_from_openbis_sample(Seek::Openbis::Zample.new(id))
+      sample.assay_id=@assay.id
+      sample.save!
     end
 
     redirect_to @assay
