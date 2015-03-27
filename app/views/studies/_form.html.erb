@@ -32,6 +32,23 @@
     </div>
 <% end %>
 
+<%= folding_panel("openBIS settings") do %>
+
+
+    Associated experiment:
+    <%= experiments = Seek::Openbis::Experiment.all
+        experiment_options = [["Select an experiment..",0]] | experiments.collect{|e| [h("#{e.code}(#{e.comment})"),e.perm_id]}
+        select_tag :study_openbis_experiment_id,
+                   options_for_select(experiment_options,@study.openbis_experiment_id),
+                   {
+                           :disabled=>(experiments.nil? || experiments.empty?),
+                           :name=>"study[openbis_experiment_id]",
+                           :class => 'form-control'
+                   }
+    -%>
+
+<% end %>
+
 <% if show_scales? %>
     <%= render :partial => "scales/scales_selector",:locals=>{:object=>@study} %>
 <% end %>

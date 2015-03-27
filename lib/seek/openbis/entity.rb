@@ -39,7 +39,7 @@ module Seek
         json = do_query_by_perm_id
         json[json_key].collect do |json|
           self.class.new.populate_from_json(json)
-        end
+        end.sort_by(&:modification_date).reverse
       end
 
       def comment

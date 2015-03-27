@@ -43,6 +43,12 @@ class Study < ActiveRecord::Base
     END_EVAL
   end
 
+  def openbis_experiment
+    if openbis_experiment_id
+      @openbis_exp ||= Seek::Openbis::Experiment.new(openbis_experiment_id)
+    end
+  end
+
   def assets
     data_files + sops + models + publications
   end
