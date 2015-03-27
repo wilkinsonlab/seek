@@ -1,4 +1,4 @@
-<tr>
+<tr data-filter-text="<%= experiment.identifier.downcase -%>">
   <td>
     <%= link_to(experiment.identifier,view_openbis_assay_path(@assay,:experiment_perm_id=>experiment.perm_id)) %>
   </td>
