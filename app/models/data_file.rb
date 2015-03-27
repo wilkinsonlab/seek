@@ -44,7 +44,7 @@ class DataFile < ActiveRecord::Base
   end
 
   def internal_dataset
-    @internal ||= (perm_id ? Seek::Openbis::Dataset.new(perm_id) : nil)
+    @internal ||= ((perm_id && openbis_json) ? Seek::Openbis::Dataset.new.populate_from_json(JSON.parse(openbis_json)) : nil)
   end
 
   def openbis_search_fields
@@ -58,6 +58,20 @@ class DataFile < ActiveRecord::Base
       end
     end
     fields
+  end
+
+  def self.load_from_openbis_dataset(dataset)
+    df = DataFile.new(:title=>dataset.code)
+    df.perm_id = dataset.perm_id
+    url="https://bitbucket.org/seek4science/seek/raw/1fa3edc5a46bb1fa90dc23d88300707fe2e9d9dd/.rubocop.yml"
+    df.content_blob=ContentBlob.new(
+        :url=>url
+    )
+    # data_hash = RemoteDownloader.new.get_remote_data(url, nil, nil, nil, true)
+    # df.content_blob = File.open(data_hash[:data_tmp_path], 'r')
+    df.openbis_json = dataset.json.to_json
+    df.last_sync=Time.now
+    df
   end
 
   explicit_versioning(:version_column => "version") do
@@ -95,19 +109,7 @@ class DataFile < ActiveRecord::Base
     end
   end
 
-  def self.load_from_openbis_dataset(dataset)
-    df = DataFile.new(:title=>dataset.code)
-    df.perm_id = dataset.perm_id
-    url="https://bitbucket.org/seek4science/seek/raw/1fa3edc5a46bb1fa90dc23d88300707fe2e9d9dd/.rubocop.yml"
-    df.content_blob=ContentBlob.new(
-        :url=>url
-    )
-    # data_hash = RemoteDownloader.new.get_remote_data(url, nil, nil, nil, true)
-    # df.content_blob = File.open(data_hash[:data_tmp_path], 'r')
-    df.openbis_json = dataset.json.to_json
-    df.last_sync=Time.now
-    df
-  end
+
 
   if Seek::Config.events_enabled
     has_and_belongs_to_many :events

@@ -44,7 +44,7 @@ class Study < ActiveRecord::Base
   end
 
   def openbis_experiment
-    if openbis_experiment_id
+    if openbis_experiment_id && openbis_experiment_id!="0"
       @openbis_exp ||= Seek::Openbis::Experiment.new(openbis_experiment_id)
     end
   end

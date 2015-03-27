@@ -40,8 +40,9 @@ class ApplicationController < ActionController::Base
   #for the demo there will only be 1 set of credentials so this doesn't matter
   def setup_openbis_connection
     project=Project.where("openbis_username IS NOT NULL").first
-    raise "HELP!" if project.nil?
-    Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
+    if project
+      Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
+    end
   end
 
   def with_current_user

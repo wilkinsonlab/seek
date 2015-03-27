@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150327145418) do
+ActiveRecord::Schema.define(:version => 20150327160413) do
 
   create_table "activity_logs", :force => true do |t|
     t.string   "action"
@@ -337,16 +337,16 @@ ActiveRecord::Schema.define(:version => 20150327145418) do
     t.datetime "last_used_at"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "version",                       :default => 1
+    t.integer  "version",                              :default => 1
     t.string   "first_letter",     :limit => 1
     t.text     "other_creators"
     t.string   "uuid"
     t.integer  "policy_id"
     t.boolean  "is_with_sample"
-    t.string   "template_name",                 :default => "none"
+    t.string   "template_name",                        :default => "none"
     t.string   "doi"
     t.string   "perm_id"
-    t.string   "openbis_json"
+    t.text     "openbis_json",     :limit => 16777215
     t.datetime "last_sync"
   end
 
@@ -814,7 +814,7 @@ ActiveRecord::Schema.define(:version => 20150327145418) do
 
   create_table "openbis_samples", :force => true do |t|
     t.string   "title"
-    t.string   "description"
+    t.text     "description"
     t.string   "perm_id"
     t.datetime "last_sync"
     t.integer  "policy_id"
@@ -822,11 +822,11 @@ ActiveRecord::Schema.define(:version => 20150327145418) do
     t.integer  "contributor_id"
     t.string   "uuid"
     t.datetime "last_used_at"
-    t.string   "openbis_json"
+    t.text     "openbis_json",     :limit => 16777215
     t.integer  "assay_id"
     t.string   "first_letter"
-    t.datetime "created_at",       :null => false
-    t.datetime "updated_at",       :null => false
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
   end
 
   create_table "openbis_samples_projects", :id => false, :force => true do |t|

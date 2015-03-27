@@ -43,6 +43,6 @@ class OpenbisSample < ActiveRecord::Base
   end
 
   def internal_sample
-    @internal ||= Seek::Openbis::Zample.new(perm_id)
+    @internal ||= Seek::Openbis::Zample.new.populate_from_json(JSON.parse(openbis_json))
   end
 end
