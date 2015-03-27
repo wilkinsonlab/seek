@@ -1,29 +1,33 @@
-<tr>
-  <td>
-    <%= check_box_tag "sample_#{sample.perm_id}" %>
-  </td>
-  <td>
-    <a name="<%= sample.perm_id %>"></a>
-    <%= sample.identifier %>
-  </td>
-  <td>
+<div class="openbis-sample">
+  <div class="openbis-sample-title">
+    <div class="row">
+      <div class="col-xs-8">
+        <%= check_box_tag "sample_#{sample.perm_id}" %>
+        <a><%= sample.identifier %> <span class="caret"></span></a>
+        <span class="subtle">(<%= sample.sample_type_text %>)</span>
+      </div>
+      <div class="col-xs-4 text-right">
+        <%= date_as_string(sample.modification_date,false) %>
+      </div>
+    </div>
+  </div>
+  <div class="openbis-sample-body">
     <%= format_openbis_properties(sample.properties) %>
-  </td>
-  <td>
-    <%= sample.sample_type_text %>
-  </td>
-  <td>
-    <%= dataset_links(sample.datasets,@experiment.datasets)  %>
-  </td>
-  <td>
-    <%= date_as_string(sample.registration_date,false) %>
-  </td>
-  <td>
-    <%= date_as_string(sample.modification_date,false) %>
-  </td>
 
-  <td>
-    <%= sample.perm_id %>
-  </td>
+    <div class="openbis_metadata">
+      <b>PermID</b>: <%= sample.perm_id %>
+    </div>
 
-</tr>
+    <div class="openbis_metadata">
+      <b>Created</b>: <%= date_as_string(sample.registration_date,false) %>
+    </div>
+
+    <div class="openbis_metadata">
+      <b>Last modified</b>: <%= date_as_string(sample.modification_date,false) %>
+    </div>
+
+    <% if sample.datasets.any? %>
+        <%= render :partial => 'openbis/datasets', :object => sample.datasets %>
+    <% end %>
+  </div>
+</div>

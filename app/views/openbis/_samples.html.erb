@@ -1,19 +1,15 @@
-<%= folding_panel("Samples",false) do %>
-      <table class="table table-bordered table-striped">
-        <thead>
-        <th></th>
-        <th>ID</th>
-        <th>Metadata</th>
-        <th>Sample type</th>
-        <th>Datasets</th>
-        <th>Created</th>
-        <th>Last modified</th>
-        <th>PermId</th>
-        </thead>
-        <tbody>
-        <% samples.each do |sample| %>
-            <%= render :partial=>"openbis/sample",:object=>sample %>
-        <% end %>
-        </tbody>
-      </table>
+<h1>Samples</h1>
+<!--<thead>-->
+<!--<th></th>-->
+<!--<th>ID</th>-->
+<!--<th>Metadata</th>-->
+<!--<th>Sample type</th>-->
+<!--<th>Datasets</th>-->
+<!--<th>Created</th>-->
+<!--<th>Last modified</th>-->
+<!--<th>PermId</th>-->
+<!--</thead>-->
+
+<% samples.each do |sample| %>
+    <%= render :partial=>"openbis/sample",:object=>sample %>
 <% end %>

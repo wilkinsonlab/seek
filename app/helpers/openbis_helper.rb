@@ -3,7 +3,7 @@ module OpenbisHelper
   def format_openbis_properties properties
     return content_tag("span",:class=>"none_text"){"none found"} if properties.empty?
     properties.keys.collect do |key|
-      content_tag("span",:class=>"openbis_metadata") do
+      content_tag("div",:class=>"openbis_metadata") do
         body = content_tag "b" do
           key.humanize
         end
@@ -13,7 +13,7 @@ module OpenbisHelper
         end
         body.concat(value)
       end
-    end.join("<br/>").html_safe
+    end.join().html_safe
 
   end
 

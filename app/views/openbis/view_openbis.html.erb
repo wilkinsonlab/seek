@@ -9,12 +9,22 @@
         @experiment=@experiments[0]
 %>
     <%= form_tag add_openbis_stuff_assay_path(@assay),:method=>:post do %>
-        <%= submit_tag "Submit",:class => 'btn btn-primary' %>
-
         <%= render :partial => 'openbis/samples', :object => @experiment.samples %>
-        <%#= render :partial => 'openbis/datasets', :object => @experiment.datasets %>
 
         <%= submit_tag "Submit",:class => 'btn btn-primary' %>
-
     <% end %>
 <% end %>
+
+<script>
+    $j(document).ready(function () {
+        $j('.openbis-sample-title a').click(function () {
+            $j(this).parents('.openbis-sample').find('.openbis-sample-body').slideToggle()
+        });
+
+        // If a dataset is selected, make sure its sample is selected too
+        $j('.openbis-dataset input[type=checkbox]').change(function () {
+            if(this.checked)
+                $j(this).parents('.openbis-sample').find('.openbis-sample-title input[type=checkbox]').prop('checked', true);
+        });
+    });
+</script>

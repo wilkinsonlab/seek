@@ -1,0 +1,25 @@
+.openbis_metadata {
+    display: inline-block;
+    width: 45%;
+    margin-right: 1em;
+    margin-bottom: 1em;
+}
+
+.openbis-sample-body {
+    display: none;
+    padding: 10px;
+    margin-bottom: 20px
+}
+
+.openbis-sample-title {
+    background: #f3f3f3;
+    padding: 10px;
+}
+.openbis-sample {
+    margin: 10px 0;
+    border-radius: 3px;
+}
+
+.openbis-sample-title a {
+    cursor: pointer;
+}
