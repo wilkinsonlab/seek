@@ -8,6 +8,7 @@ module ISAHelper
   FILL_COLOURS = {'Sop'=>"#7ac5cd", #cadetblue3
                   'Model'=>"#cdcd00", #yellow3
                   'DataFile'=>"#eec591", #burlywood2
+                  'OpenbisSample'=>"#c5ee91",
                   'Investigation'=>"#C7E9C0",
                   'Study'=>"#91c98b",
                   'Assay'=> {'EXP'=>"#64b466",'MODEL'=>"#92CD00"},
@@ -20,6 +21,7 @@ module ISAHelper
   BORDER_COLOURS = {'Sop'=>"#619da4",
                     'Model'=>"#a4a400",
                     'DataFile'=>"#be9d74",
+                    'OpenbisSample'=>"#a5ce71",
                     'Investigation'=>"#9fba99",
                     'Study'=>"#74a06f",
                     'Assay'=> {'EXP'=>"#509051",'MODEL'=>"#74a400"},
