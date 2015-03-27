@@ -19,6 +19,25 @@
         <%= render :partial => "assets/usage_info",:locals => { :resource => @data_file , :versioned_resource=> @display_data_file } -%>
       </div>
     </div>
+    <% if @data_file.openbis? %>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">openBIS</div>
+      <div class="panel-body">
+      <div class="col-md-6">
+        <strong>Metadata</strong><br/>
+        <%= format_openbis_properties(@data_file.properties) %>
+      </div>
+      <div class="col-md-6">
+        <strong>Code</strong>: <%= @data_file.code %>
+        <br/>
+        <strong>Created on openBIS</strong>: <%= date_as_string(@data_file.registration_date,true) %>
+        <br/>
+        <strong>Last synchronised</strong>: <%= date_as_string(@data_file.last_sync,true) %>
+      </div>
+      </div>
+    </div>
+    <% end %>
 
   </div>
 

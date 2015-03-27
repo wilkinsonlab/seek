@@ -11,12 +11,13 @@ class DataFile < ActiveRecord::Base
   include Seek::Data::SpreadsheetExplorerRepresentation
   include Seek::Rdf::RdfGeneration
 
+  delegate :modification_date,:registration_date,:code,:properties, :to=>:internal_dataset
 
   attr_accessor :parent_name
 
   #searchable must come before acts_as_asset call
   searchable(:auto_index=>false) do
-    text :spreadsheet_annotation_search_fields,:fs_search_fields
+    text :spreadsheet_annotation_search_fields,:fs_search_fields,:openbis_search_fields
   end if Seek::Config.solr_enabled
 
   acts_as_asset
@@ -32,11 +33,32 @@ class DataFile < ActiveRecord::Base
   # allow same titles, but only if these belong to different users
   # validates_uniqueness_of :title, :scope => [ :contributor_id, :contributor_type ], :message => "error - you already have a Data file with such title."
 
-    has_one :content_blob, :as => :asset, :foreign_key => :asset_id ,:conditions => Proc.new{["content_blobs.asset_version =?", version]}
+  has_one :content_blob, :as => :asset, :foreign_key => :asset_id ,:conditions => Proc.new{["content_blobs.asset_version =?", version]}
 
   has_many :studied_factors, :conditions => Proc.new{["studied_factors.data_file_version =?", version]}
 
   has_and_belongs_to_many :openbis_samples
+
+  def openbis?
+    !internal_dataset.nil?
+  end
+
+  def internal_dataset
+    @internal ||= (perm_id ? Seek::Openbis::Dataset.new(perm_id) : nil)
+  end
+
+  def openbis_search_fields
+    fields = []
+    if openbis?
+      fields << perm_id
+      fields << code
+      properties.each do |k,v|
+        fields << k
+        fields << v
+      end
+    end
+    fields
+  end
 
   explicit_versioning(:version_column => "version") do
     include Seek::Data::DataFileExtraction
@@ -48,9 +70,7 @@ class DataFile < ActiveRecord::Base
     
     has_many :studied_factors, :primary_key => "data_file_id", :foreign_key => "data_file_id", :conditions => Proc.new{["studied_factors.data_file_version =?", version]}
 
-    def internal_dataset
-      @internal ||= Seek::Openbis::Zample.new.populate_from_json(JSON.parse(openbis_json))
-    end
+
 
     def relationship_type(assay)
       parent.relationship_type(assay)
