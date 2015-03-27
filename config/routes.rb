@@ -4,6 +4,7 @@ SEEK::Application.routes.draw do
     resources :data_files,:only=>[:index]
     member do
       post :update_annotations_ajax
+      put :openbis_refresh
     end
 
   end
@@ -317,6 +318,7 @@ SEEK::Application.routes.draw do
       get :mint_doi_confirm
       get :minted_doi
       post :mint_doi
+      put :openbis_refresh
     end
     resources :studied_factors do
       collection do

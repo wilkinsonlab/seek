@@ -14,6 +14,7 @@
           <strong>Modified on Openbis</strong>: <%= date_as_string(@sample.modification_date,true) %>
           <br/>
           <strong>Last synchronised</strong>: <%= date_as_string(@sample.last_sync,true) %>
+          <%= button_link_to("", 'refresh',  openbis_refresh_openbis_sample_path(@sample), :method=>:put) %>
         </p>
         <p>
           <strong>Openbis permID</strong>: <%= @sample.perm_id %>

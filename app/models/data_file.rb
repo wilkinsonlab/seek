@@ -61,17 +61,27 @@ class DataFile < ActiveRecord::Base
   end
 
   def self.load_from_openbis_dataset(dataset)
-    df = DataFile.new(:title=>dataset.code)
-    df.perm_id = dataset.perm_id
+    df = DataFile.new
     url="https://bitbucket.org/seek4science/seek/raw/1fa3edc5a46bb1fa90dc23d88300707fe2e9d9dd/.rubocop.yml"
     df.content_blob=ContentBlob.new(
         :url=>url
     )
-    # data_hash = RemoteDownloader.new.get_remote_data(url, nil, nil, nil, true)
-    # df.content_blob = File.open(data_hash[:data_tmp_path], 'r')
-    df.openbis_json = dataset.json.to_json
-    df.last_sync=Time.now
+    df.update_from_openbis_dataset(dataset)
     df
+  end
+
+  def openbis_refresh
+    Rails.cache.delete("openbis-Dataset-#{perm_id}")
+    dataset=Seek::Openbis::Dataset.new(perm_id)
+    self.update_from_openbis_dataset(dataset)
+    self.save!
+  end
+
+  def update_from_openbis_dataset dataset
+    self.title = dataset.code
+    self.perm_id = dataset.perm_id
+    self.openbis_json = dataset.json.to_json
+    self.last_sync=Time.now
   end
 
   explicit_versioning(:version_column => "version") do

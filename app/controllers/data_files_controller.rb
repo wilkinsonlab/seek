@@ -23,6 +23,11 @@ class DataFilesController < ApplicationController
 
   include Seek::DataciteDoi
 
+  def openbis_refresh
+    @data_file.openbis_refresh
+    redirect_to @data_file
+  end
+
 
   def convert_to_presentation
     @data_file = DataFile.find params[:id]

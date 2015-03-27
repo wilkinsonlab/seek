@@ -34,6 +34,7 @@
         <strong>Created on openBIS</strong>: <%= date_as_string(@data_file.registration_date,true) %>
         <br/>
         <strong>Last synchronised</strong>: <%= date_as_string(@data_file.last_sync,true) %>
+        <%= button_link_to("  ", 'refresh',  openbis_refresh_data_file_path(@data_file), :method=>:put) %>
       </div>
       </div>
     </div>

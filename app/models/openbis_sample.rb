@@ -5,6 +5,8 @@ class OpenbisSample < ActiveRecord::Base
 
   has_and_belongs_to_many :data_files
 
+  scope :default_order, order('title')
+
   acts_as_asset
 
   searchable(:auto_index=>false) do
@@ -21,13 +23,24 @@ class OpenbisSample < ActiveRecord::Base
 
   def self.load_from_openbis_sample sample
     entity = OpenbisSample.new
-    entity.openbis_json = sample.json.to_json
-    entity.perm_id = sample.perm_id
-    entity.title = sample.code
-    entity.description = sample.comment
-    entity.last_sync = Time.now
+    entity.update_from_openbis_sample(sample)
 
     entity
+  end
+
+  def openbis_refresh
+    Rails.cache.delete("openbis-Sample-#{perm_id}")
+    zample=Seek::Openbis::Zample.new(perm_id)
+    self.update_from_openbis_sample(zample)
+    self.save!
+  end
+
+  def update_from_openbis_sample(sample)
+    self.openbis_json = sample.json.to_json
+    self.perm_id = sample.perm_id
+    self.title = sample.code
+    self.description = sample.comment
+    self.last_sync = Time.now
   end
 
   def default_policy
