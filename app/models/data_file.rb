@@ -4,6 +4,7 @@ require 'explicit_versioning'
 require 'title_trimmer'
 
 
+
 class DataFile < ActiveRecord::Base
 
   include Seek::Data::DataFileExtraction
@@ -66,6 +67,20 @@ class DataFile < ActiveRecord::Base
 
       end
     end
+  end
+
+  def self.load_from_openbis_dataset(dataset)
+    df = DataFile.new(:title=>dataset.code)
+    df.perm_id = dataset.perm_id
+    url="https://bitbucket.org/seek4science/seek/raw/1fa3edc5a46bb1fa90dc23d88300707fe2e9d9dd/.rubocop.yml"
+    df.content_blob=ContentBlob.new(
+        :url=>url
+    )
+    # data_hash = RemoteDownloader.new.get_remote_data(url, nil, nil, nil, true)
+    # df.content_blob = File.open(data_hash[:data_tmp_path], 'r')
+    df.openbis_json = dataset.json.to_json
+    df.last_sync=Time.now
+    df
   end
 
   if Seek::Config.events_enabled

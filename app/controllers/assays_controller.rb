@@ -56,9 +56,29 @@ class AssaysController < ApplicationController
     dataset_ids = params["datasets"].try(:keys) || []
 
     sample_ids.each do |id|
-      sample = OpenbisSample.load_from_openbis_sample(Seek::Openbis::Zample.new(id))
-      sample.assay_id=@assay.id
-      sample.save!
+      begin
+        zample = Seek::Openbis::Zample.new(id)
+        sample = OpenbisSample.load_from_openbis_sample(zample)
+        sample.assay_id=@assay.id
+        sample.save!
+      rescue Exception=>e
+        Rails.logger.error(e)
+        raise e if Rails.env=="development"
+      end
+    end
+
+    dataset_ids.each do |id|
+      begin
+        ds = Seek::Openbis::Dataset.new(id)
+        datafile = DataFile.load_from_openbis_dataset(ds)
+        datafile.save!
+        @assay.associate(datafile)
+
+        @assay.save!
+      rescue Exception=>e
+        Rails.logger.error(e)
+        raise e if Rails.env=="development"
+      end
     end
 
     redirect_to @assay
