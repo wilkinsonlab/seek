@@ -5,7 +5,7 @@
 <% end %>
 
 <% if @assay.openbis_supported? %>
-    <%= button_link_to("openBIS", 'new',  view_openbis_assay_path(@assay)) %>
+    <%= button_link_to("openBIS", 'openbis',  view_openbis_assay_path(@assay)) %>
 <% end %>
 
 <%= admin_dropdown do %>
