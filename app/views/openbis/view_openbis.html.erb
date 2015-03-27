@@ -10,7 +10,6 @@
 %>
     <%= form_tag add_openbis_stuff_assay_path(@assay),:method=>:post do %>
         <%= render :partial => 'openbis/samples', :object => @experiment.samples %>
-
         <%= submit_tag "Submit",:class => 'btn btn-primary' %>
     <% end %>
 <% end %>

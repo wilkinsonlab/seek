@@ -19,7 +19,7 @@ class OpenbisSample < ActiveRecord::Base
 
   def self.load_from_openbis_sample sample
     entity = OpenbisSample.new
-    entity.openbis_json = sample.json
+    entity.openbis_json = sample.json.to_json
     entity.perm_id = sample.perm_id
     entity.title = sample.code
     entity.description = sample.comment
