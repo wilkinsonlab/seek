@@ -1,6 +1,7 @@
 SEEK::Application.routes.draw do
 
   resources :openbis_samples do
+    resources :data_files,:only=>[:index]
     member do
       post :update_annotations_ajax
     end
@@ -329,7 +330,7 @@ SEEK::Application.routes.draw do
         get :download
       end
     end
-    resources :people,:projects,:investigations,:assays,:studies,:publications,:events,:only=>[:index]
+    resources :openbis_samples,:people,:projects,:investigations,:assays,:studies,:publications,:events,:only=>[:index]
   end
 
   resources :presentations do

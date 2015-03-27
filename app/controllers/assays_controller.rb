@@ -35,8 +35,17 @@ class AssaysController < ApplicationController
     end
 
     if (params[:wipe])
-      @assay.openbis_samples.destroy_all
-      @assay.data_files.destroy_all
+      disable_authorization_checks do
+        @assay.openbis_samples.each do |os|
+          os.destroy
+        end
+        @assay.openbis_samples.destroy_all
+        @assay.data_files.each do |df|
+          df.destroy
+        end
+        @assay.data_files.destroy_all
+      end
+
     end
 
     p = @assay.openbis_project
@@ -55,19 +64,7 @@ class AssaysController < ApplicationController
     sample_ids = params["samples"].try(:keys) || []
     dataset_ids = params["datasets"].try(:keys) || []
 
-    sample_ids.each do |id|
-      begin
-        zample = Seek::Openbis::Zample.new(id)
-        sample = OpenbisSample.load_from_openbis_sample(zample)
-        sample.assay_id=@assay.id
-        sample.save!
-      rescue Exception=>e
-        Rails.logger.error(e)
-        raise e if Rails.env=="development"
-      end
-    end
-
-    dataset_ids.each do |id|
+    datafiles = dataset_ids.collect do |id|
       begin
         ds = Seek::Openbis::Dataset.new(id)
         datafile = DataFile.load_from_openbis_dataset(ds)
@@ -75,10 +72,39 @@ class AssaysController < ApplicationController
         @assay.associate(datafile)
 
         @assay.save!
+        datafile
       rescue Exception=>e
         Rails.logger.error(e)
         raise e if Rails.env=="development"
+        nil
       end
+    end.compact
+
+    openbis_samples = sample_ids.collect do |id|
+      begin
+        zample = Seek::Openbis::Zample.new(id)
+        sample = OpenbisSample.load_from_openbis_sample(zample)
+        sample.assay_id=@assay.id
+        sample.save!
+        sample
+      rescue Exception=>e
+        Rails.logger.error(e)
+        raise e if Rails.env=="development"
+        nil
+      end
+    end.compact
+
+
+
+    #link them together
+    openbis_samples.each do |os|
+      zample = os.internal_sample
+      perm_ids = zample.datasets.select do |ds|
+        dataset_ids.include?(ds.perm_id)
+      end.collect(&:perm_id)
+      os.data_files = datafiles.select{|df| perm_ids.include?(df.perm_id)}
+      os.save!
+
     end
 
     redirect_to @assay

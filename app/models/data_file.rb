@@ -36,6 +36,8 @@ class DataFile < ActiveRecord::Base
 
   has_many :studied_factors, :conditions => Proc.new{["studied_factors.data_file_version =?", version]}
 
+  has_and_belongs_to_many :openbis_samples
+
   explicit_versioning(:version_column => "version") do
     include Seek::Data::DataFileExtraction
     include Seek::Data::SpreadsheetExplorerRepresentation
@@ -45,7 +47,11 @@ class DataFile < ActiveRecord::Base
     has_one :content_blob,:primary_key => :data_file_id,:foreign_key => :asset_id,:conditions => Proc.new{["content_blobs.asset_version =? AND content_blobs.asset_type =?", version,parent.class.name]}
     
     has_many :studied_factors, :primary_key => "data_file_id", :foreign_key => "data_file_id", :conditions => Proc.new{["studied_factors.data_file_version =?", version]}
-    
+
+    def internal_dataset
+      @internal ||= Seek::Openbis::Zample.new.populate_from_json(JSON.parse(openbis_json))
+    end
+
     def relationship_type(assay)
       parent.relationship_type(assay)
     end
