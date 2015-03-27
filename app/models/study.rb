@@ -16,6 +16,12 @@ class Study < ActiveRecord::Base
   belongs_to :investigation
   has_many :assays
   belongs_to :person_responsible, :class_name => "Person"
+
+  has_many :relationships,
+           :class_name => 'Relationship',
+           :as => :subject,
+           :dependent => :destroy
+
   validates :investigation, :presence => true
 
   searchable(:auto_index => false) do
@@ -54,6 +60,10 @@ class Study < ActiveRecord::Base
     new_object.policy = self.policy.deep_copy
 
     return new_object
+  end
+
+  def publications
+    self.relationships.select {|a| a.other_object_type == "Publication"}.collect { |a| a.other_object }
   end
 
 end
