@@ -26,15 +26,6 @@ module Seek
         dataset_type["code"]
       end
 
-      def samples
-        unless @samples
-          @samples = sample_ids.collect do |id|
-            Seek::Openbis::Zample.new(id)
-          end
-        end
-        @samples
-      end
-
       def type_name
         'DataSet'
       end

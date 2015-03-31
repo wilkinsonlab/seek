@@ -8,6 +8,10 @@ module Seek
         self.new.all
       end
 
+      def self.find_by_perm_ids perm_ids
+        self.new.find_by_perm_ids(perm_ids)
+      end
+
       def ==(other)
         self.perm_id == other.perm_id
       end
@@ -37,9 +41,19 @@ module Seek
 
       def all
         json = do_query_by_perm_id
+        construct_from_json(json)
+      end
+
+      def construct_from_json(json)
         json[json_key].collect do |json|
           self.class.new.populate_from_json(json)
         end.sort_by(&:modification_date).reverse
+      end
+
+      def find_by_perm_ids perm_ids
+        ids_str=perm_ids.compact.uniq.join(",")
+        json = do_query_by_perm_id(ids_str)
+        construct_from_json(json)
       end
 
       def comment
@@ -56,6 +70,20 @@ module Seek
       def query_instance
         info = Seek::Openbis::ConnectionInfo.instance
         Fairdom::OpenbisApi::Query.new(info.username, info.password, info.endpoint)
+      end
+
+      def samples
+        unless @samples
+          @samples = Seek::Openbis::Zample.find_by_perm_ids(sample_ids)
+        end
+        @samples
+      end
+
+      def datasets
+        unless @datasets
+          @datasets = Seek::Openbis::Dataset.find_by_perm_ids(dataset_ids)
+        end
+        @datasets
       end
 
       protected

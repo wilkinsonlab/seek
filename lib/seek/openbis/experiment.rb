@@ -26,24 +26,6 @@ module Seek
         txt
       end
 
-      def samples
-        unless @samples
-          @samples = sample_ids.collect do |id|
-            Seek::Openbis::Zample.new(id)
-          end.sort_by(&:modification_date).reverse
-        end
-        @samples
-      end
-
-      def datasets
-        unless @datasets
-          @datasets = dataset_ids.collect do |id|
-            Seek::Openbis::Dataset.new(id)
-          end
-        end
-        @datasets.sort_by(&:modification_date).reverse
-      end
-
       def type_name
         'Experiment'
       end
