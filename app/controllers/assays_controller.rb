@@ -68,6 +68,7 @@ class AssaysController < ApplicationController
       begin
         ds = Seek::Openbis::Dataset.new(id)
         datafile = DataFile.load_from_openbis_dataset(ds)
+        datafile.projects = @assay.projects
         datafile.save!
         @assay.associate(datafile)
 
@@ -85,6 +86,7 @@ class AssaysController < ApplicationController
         zample = Seek::Openbis::Zample.new(id)
         sample = OpenbisSample.load_from_openbis_sample(zample)
         sample.assay_id=@assay.id
+        sample.projects = @assay.projects
         sample.save!
         sample
       rescue Exception=>e
