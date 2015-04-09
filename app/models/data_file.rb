@@ -62,9 +62,10 @@ class DataFile < ActiveRecord::Base
 
   def self.load_from_openbis_dataset(dataset)
     df = DataFile.new
-    url="https://bitbucket.org/seek4science/seek/raw/1fa3edc5a46bb1fa90dc23d88300707fe2e9d9dd/.rubocop.yml"
+    io=File.open("#{Rails.root}/demo-data/sample_A1.txt")
     df.content_blob=ContentBlob.new(
-        :url=>url
+        :tmp_io_object=>io,
+        :original_filename=>"sample_A1.txt"
     )
     df.update_from_openbis_dataset(dataset)
     df

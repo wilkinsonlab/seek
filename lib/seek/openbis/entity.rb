@@ -81,7 +81,9 @@ module Seek
 
       def datasets
         unless @datasets
-          @datasets = Seek::Openbis::Dataset.find_by_perm_ids(dataset_ids)
+          @datasets = dataset_ids.collect do |id|
+            Seek::Openbis::Dataset.new(id)
+          end
         end
         @datasets
       end

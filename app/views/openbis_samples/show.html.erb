@@ -4,26 +4,19 @@
   <div class="col-md-9 col-sm-8 box_about_actor">
     <%= item_description @sample.description -%>
     <div class="row">
-      <div class="col-md-6">
+
+      <div class="col-md-7 openbis-sample">
         <%= format_openbis_properties(@sample.properties) %>
       </div>
-      <div class="col-md-6">
-        <p>
-          <strong>Created on Openbis</strong>: <%= date_as_string(@sample.registration_date,true) %>
-          <br/>
-          <strong>Modified on Openbis</strong>: <%= date_as_string(@sample.modification_date,true) %>
-          <br/>
-          <strong>Last synchronised</strong>: <%= date_as_string(@sample.last_sync,true) %>
-          <%= button_link_to("", 'refresh',  openbis_refresh_openbis_sample_path(@sample), :method=>:put) %>
-        </p>
-        <p>
-          <strong>Openbis permID</strong>: <%= @sample.perm_id %>
-          <br/>
-          <strong>Openbis Code</strong>: <%= @sample.code %>
-          <br/>
-          <strong>Openbis Identifier</strong>: <%= @sample.identifier %>
-        </p>
-        <%= render :partial => "assets/usage_info", :locals => {:resource => @sample, :versioned_resource => @sample} -%>
+
+      <div class="col-md-4">
+        <%= render :partial=>"openbis/resource_info",:object=>@sample %>
+        <%#= render :partial => "assets/usage_info", :locals => {:resource => @sample, :versioned_resource => @sample} -%>
+      </div>
+      <div class="col-md-1">
+        <div class="openbis-resync-button">
+          <%= button_link_to("", 'refresh', openbis_refresh_openbis_sample_path(@sample), :method => :put) %>
+        </div>
       </div>
     </div>
   </div>

@@ -1,0 +1,16 @@
+<% object = resource_info %>
+<div class="openbis-metadata">
+  <strong>openBIS permID</strong>: <%= object.perm_id %>
+</div>
+<div class="openbis-metadata">
+  <strong>openBIS Code</strong>: <%= object.code %>
+</div>
+<div class="openbis-metadata">
+  <strong>Created on openBIS</strong>: <%= date_as_string(object.registration_date, true) %>
+</div>
+<div class="openbis-metadata">
+  <strong>Modified on openBIS</strong>: <%= date_as_string(object.modification_date, true) %>
+</div>
+<div class="openbis-metadata">
+  <strong>Last synchronised</strong>: <%= date_as_string(object.last_sync, true) %>
+</div>

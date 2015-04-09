@@ -1,8 +1,15 @@
-.openbis-sample .openbis_metadata {
+.openbis-sample .openbis-metadata {
     display: inline-block;
     width: 45%;
-    margin-right: 1em;
-    margin-bottom: 1em;
+}
+
+.openbis-metadata {
+    margin-bottom: 0.5em;
+    margin-right: 0.75em;
+}
+
+.openbis-resync-button {
+
 }
 
 .openbis-sample-body {
@@ -22,4 +29,9 @@
 
 .openbis-sample-title a {
     cursor: pointer;
+}
+
+.panel .openbis-info {
+    width: 90%;
+    background-color: blue;
 }
