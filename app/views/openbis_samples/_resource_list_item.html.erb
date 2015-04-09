@@ -2,6 +2,7 @@
   <div class="col-sm-6">
     <%= list_item_authorized_attribute "Contributor", resource.contributor.person %>
     <%= list_item_authorized_list resource.assays, t('assays.assay').pluralize %>
+    <%= list_item_authorized_list resource.data_files, t('data_file').pluralize, true, 50, true %>
   </div>
 
   <div class="col-sm-6 hidden-xs">

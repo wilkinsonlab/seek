@@ -5,4 +5,5 @@
 <div class="hidden-xs">
   <%= @assay ? (list_item_optional_attribute "Relationship type", resource.relationship_type(@assay).try(:title)) : "" -%>
   <%= scales_list_for_list_item resource %>
+  <%= list_item_authorized_list resource.openbis_samples, "Samples", true, 50, true %>
 </div>
