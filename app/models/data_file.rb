@@ -62,7 +62,11 @@ class DataFile < ActiveRecord::Base
 
   def self.load_from_openbis_dataset(dataset)
     df = DataFile.new
-    io=File.open("#{Rails.root}/demo-data/sample_A1.txt")
+    #need to copy the dummy file as it gets deleted after being added
+    src="#{Rails.root}/demo-data/sample_A1.txt"
+    tmp="/tmp/#{UUID.generate}"
+    FileUtils.copy(src,tmp)
+    io=File.open(tmp)
     df.content_blob=ContentBlob.new(
         :tmp_io_object=>io,
         :original_filename=>"sample_A1.txt"
