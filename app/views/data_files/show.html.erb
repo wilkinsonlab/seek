@@ -15,29 +15,26 @@
 
         <%= render :partial => "assets/asset_doi", :locals => {:displayed_resource=>@display_data_file} %>
       </div>
-      <div class="col-md-6">
-        <%= render :partial => "assets/usage_info",:locals => { :resource => @data_file , :versioned_resource=> @display_data_file } -%>
-      </div>
+
     </div>
     <% if @data_file.openbis? %>
+        <div class="panel panel-default">
+          <div class="panel-heading"><%= image('openbis') %> openBIS</div>
+          <div class="panel-body">
+            <div class="col-md-7 openbis-sample">
+              <%= format_openbis_properties(@data_file.properties) %>
+            </div>
+            <div class="col-md-4">
+              <%= render :partial => "openbis/resource_info", :object => @data_file %>
+            </div>
+            <div class="col-md-1">
+              <div class="openbis-resync-button">
+                <%= button_link_to("", 'refresh', openbis_refresh_data_file_path(@data_file), :method => :put) %>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <div class="panel panel-default">
-      <div class="panel-heading">openBIS</div>
-      <div class="panel-body">
-      <div class="col-md-6">
-        <strong>Metadata</strong><br/>
-        <%= format_openbis_properties(@data_file.properties) %>
-      </div>
-      <div class="col-md-6">
-        <strong>Code</strong>: <%= @data_file.code %>
-        <br/>
-        <strong>Created on openBIS</strong>: <%= date_as_string(@data_file.registration_date,true) %>
-        <br/>
-        <strong>Last synchronised</strong>: <%= date_as_string(@data_file.last_sync,true) %>
-        <%= button_link_to("  ", 'refresh',  openbis_refresh_data_file_path(@data_file), :method=>:put) %>
-      </div>
-      </div>
-    </div>
     <% end %>
 
   </div>

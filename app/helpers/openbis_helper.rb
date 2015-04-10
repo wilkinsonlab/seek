@@ -1,7 +1,7 @@
 module OpenbisHelper
 
   def format_openbis_properties properties
-    return content_tag("span",:class=>"none_text"){"none found"} if properties.empty?
+    return content_tag("span",:class=>"none_text"){"No additional metadata"} if properties.empty?
     properties.keys.sort.collect do |key|
       content_tag("div",:class=>"openbis-metadata") do
         body = content_tag "b" do

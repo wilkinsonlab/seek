@@ -3,22 +3,24 @@
 <div class="row">
   <div class="col-md-9 col-sm-8 box_about_actor">
     <%= item_description @sample.description -%>
-    <div class="row">
+    <div class="row"></div>
 
-      <div class="col-md-7 openbis-sample">
-        <%= format_openbis_properties(@sample.properties) %>
-      </div>
-
-      <div class="col-md-4">
-        <%= render :partial=>"openbis/resource_info",:object=>@sample %>
-        <%#= render :partial => "assets/usage_info", :locals => {:resource => @sample, :versioned_resource => @sample} -%>
-      </div>
-      <div class="col-md-1">
-        <div class="openbis-resync-button">
-          <%= button_link_to("", 'refresh', openbis_refresh_openbis_sample_path(@sample), :method => :put) %>
+      <div class="panel panel-default">
+        <div class="panel-heading"><%= image('openbis') %> openBIS</div>
+        <div class="panel-body">
+          <div class="col-md-7 openbis-sample">
+            <%= format_openbis_properties(@sample.properties) %>
+          </div>
+          <div class="col-md-4">
+            <%= render :partial => "openbis/resource_info", :object => @sample %>
+          </div>
+          <div class="col-md-1">
+            <div class="openbis-resync-button">
+              <%= button_link_to("", 'refresh', openbis_refresh_openbis_sample_path(@sample), :method => :put) %>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
   </div>
   <div class="col-md-3 col-sm-4">
     <%= render :partial => "assets/resource_main_content_right", :locals => {:resource => @sample, :creators => [@sample.contributor.person]} %>
