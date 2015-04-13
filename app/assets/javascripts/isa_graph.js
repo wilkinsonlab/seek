@@ -1,5 +1,5 @@
 var cy;
-var default_node_width = 175;
+var default_node_width = 195;
 var default_node_height = 35;
 var default_font_size = 11;
 var default_color = '#323232';
@@ -12,7 +12,8 @@ function drawGraph(elements, current_element_id){
         layout: {
             name: 'breadthfirst'
         },
-
+        boxSelectionEnabled: true,
+        autolock: false,
         showOverlay: false,
 
         style: cytoscape.stylesheet()
@@ -35,9 +36,9 @@ function drawGraph(elements, current_element_id){
 
             .selector('edge')
             .css({
-                'width': 1.5,
+                'width': 1,
                 'target-arrow-shape': 'none',
-                'line-color': 'data(faveColor)',
+                'line-color': '#191975',
                 'source-arrow-color': 'data(faveColor)',
                 'target-arrow-color': 'data(faveColor)',
                 'content': 'data(name)',
@@ -53,7 +54,7 @@ function drawGraph(elements, current_element_id){
 
             //process only when having nodes
             if (nodes.length > 0){
-                processPanzoom();
+                //processPanzoom();
 
                 nodes.on('click', function(e){
                     var node = e.cyTarget;
@@ -119,7 +120,7 @@ function animateNode(node){
     node.select();
 }
 
-function displayNodeInfo(node){
+function displayNodeInfo(node) {
     var html = "<div class='panel panel-default'>";
     html += "<div class='panel-heading'>Chosen item</div>";
     html += "<div class='panel-body>";
