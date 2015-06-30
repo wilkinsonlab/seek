@@ -135,21 +135,21 @@ class PoliciesController < ApplicationController
      resource
   end
 
-  def sharing_params_to_policy params
-      policy =Policy.new()
-      policy.sharing_scope = params["sharing_scope"].to_i unless params[:sharing_scope].blank?
-      policy.access_type = params[:access_type].blank? ? 0 : params["access_type"].to_i
-      policy.use_whitelist = params["use_whitelist"] == 'true' ? true : false
-      policy.use_blacklist = params["use_blacklist"] == 'true' ? true : false
+  def sharing_params_to_policy policy_params = params
+      policy = Policy.new
+      policy.sharing_scope = policy_params["sharing_scope"].to_i unless policy_params[:sharing_scope].blank?
+      policy.access_type = policy_params[:access_type].blank? ? 0 : policy_params["access_type"].to_i
+      policy.use_whitelist = policy_params["use_whitelist"] == 'true' ? true : false
+      policy.use_blacklist = policy_params["use_blacklist"] == 'true' ? true : false
 
       #now process the params for permissions
-      contributor_types = params["contributor_types"].blank? ? [] : ActiveSupport::JSON.decode(params["contributor_types"])
-      new_permission_data = params["contributor_values"].blank? ? {} : ActiveSupport::JSON.decode(params["contributor_values"])
+      contributor_types = policy_params["contributor_types"].blank? ? [] : ActiveSupport::JSON.decode(policy_params["contributor_types"])
+      new_permission_data = policy_params["contributor_values"].blank? ? {} : ActiveSupport::JSON.decode(policy_params["contributor_values"])
 
       #if share with your project and with all_sysmo_user is chosen
       if (policy.sharing_scope == Policy::ALL_USERS)
-          your_proj_access_type = params["project_access_type"].blank? ? nil : params["project_access_type"].to_i
-          selected_projects = get_selected_projects params[:project_ids], params[:resource_name]
+          your_proj_access_type = policy_params["project_access_type"].blank? ? nil : policy_params["project_access_type"].to_i
+          selected_projects = get_selected_projects policy_params[:project_ids], policy_params[:resource_name]
           selected_projects.each do |selected_project|
             project_id = selected_project.id
             #add Project to contributor_type
