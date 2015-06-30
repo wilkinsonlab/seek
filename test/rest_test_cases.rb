@@ -6,7 +6,7 @@ require 'pp'
 module RestTestCases
 
   SCHEMA_FILE_PATH = File.join(Rails.root, 'public', '2010', 'xml', 'rest', 'schema-v1.xsd')
-  
+
   def test_index_rest_api_xml
     #to make sure something in the database is created
     object=rest_api_test_object
@@ -53,37 +53,38 @@ module RestTestCases
     get :show,:id=>id,:format=>"xml"
     assert_response :not_found
   end
-  
+
   def perform_api_checks
-    assert_response :success    
+    assert_response :success
     valid,message = check_xml
-    assert valid,message        
+    assert valid,message
     validate_xml_against_schema(@response.body)
   end
-  
+
   def check_xml
     assert_equal 'application/xml', @response.content_type
     xml=@response.body
     return false,"XML is nil" if xml.nil?
-    
-    return true,""    
-  end  
-  
-  def validate_xml_against_schema(xml,schema=SCHEMA_FILE_PATH)
-    skip("currently skipping REST API schema check") if skip_rest_schema_check?
-    document = LibXML::XML::Document.string(xml)
-    schema = LibXML::XML::Schema.new(schema)
-    result = true
-    begin
-      document.validate_schema(schema)
-    rescue LibXML::XML::Error => e
-      result = false            
-      assert false,"Error validating against schema: #{e.message}"
-    end
-  
-    return result
+
+    return true,""
   end
-  
+
+  def validate_xml_against_schema(xml,schema=SCHEMA_FILE_PATH)
+    with_rest_schema_check do
+      document = LibXML::XML::Document.string(xml)
+      schema = LibXML::XML::Schema.new(schema)
+      result = true
+      begin
+        document.validate_schema(schema)
+      rescue LibXML::XML::Error => e
+        result = false
+        assert false,"Error validating against schema: #{e.message}"
+      end
+
+      return result
+    end
+  end
+
   def display_xml xml
     x=1
     xml.split("\n").each do |line|
@@ -91,5 +92,5 @@ module RestTestCases
       x=x+1
     end
   end
-  
+
 end

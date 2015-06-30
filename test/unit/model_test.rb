@@ -55,12 +55,13 @@ class ModelTest < ActiveSupport::TestCase
   end
 
   test "content blob search terms" do
-    check_for_soffice
-    m = Factory :teusink_model
-    m.content_blobs << Factory.create(:doc_content_blob,:original_filename=>"word.doc",:asset=>m,:asset_version=>m.version)
-    m.reload
+    with_soffice do
+      m = Factory :teusink_model
+      m.content_blobs << Factory.create(:doc_content_blob,:original_filename=>"word.doc",:asset=>m,:asset_version=>m.version)
+      m.reload
 
-    assert_equal ["This is a ms word doc format", "teusink.xml", "word.doc"],m.content_blob_search_terms.sort
+      assert_equal ["This is a ms word doc format", "teusink.xml", "word.doc"],m.content_blob_search_terms.sort
+    end
   end
 
   test "type detection" do

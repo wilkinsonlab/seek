@@ -18,12 +18,13 @@ class DataFileTest < ActiveSupport::TestCase
   end
 
   test "content blob search terms" do
-    check_for_soffice
-    df = Factory :data_file, :content_blob=>Factory(:doc_content_blob,:original_filename=>"word.doc")
-    assert_equal ["This is a ms word doc format","word.doc"],df.content_blob_search_terms.sort
+    with_soffice do
+      df = Factory :data_file, :content_blob=>Factory(:doc_content_blob,:original_filename=>"word.doc")
+      assert_equal ["This is a ms word doc format","word.doc"],df.content_blob_search_terms.sort
 
-    df = Factory :xlsx_spreadsheet_datafile
-    assert_includes df.content_blob_search_terms,"mild stress"
+      df = Factory :xlsx_spreadsheet_datafile
+      assert_includes df.content_blob_search_terms,"mild stress"
+    end
   end
 
   # test "spreadsheet contents for search" do

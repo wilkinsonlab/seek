@@ -138,23 +138,24 @@ class ContentBlobsControllerTest < ActionController::TestCase
   end
 
   test 'get_pdf' do
-    check_for_soffice
-    ms_word_sop = Factory(:doc_sop, policy: Factory(:all_sysmo_downloadable_policy))
-    pdf_path = ms_word_sop.content_blob.filepath('pdf')
-    FileUtils.rm pdf_path if File.exist?(pdf_path)
-    assert !File.exist?(pdf_path)
-    assert ms_word_sop.can_download?
+    with_soffice do
+      ms_word_sop = Factory(:doc_sop, policy: Factory(:all_sysmo_downloadable_policy))
+      pdf_path = ms_word_sop.content_blob.filepath('pdf')
+      FileUtils.rm pdf_path if File.exist?(pdf_path)
+      assert !File.exist?(pdf_path)
+      assert ms_word_sop.can_download?
 
-    get :get_pdf, sop_id: ms_word_sop.id, id: ms_word_sop.content_blob.id
-    assert_response :success
+      get :get_pdf, sop_id: ms_word_sop.id, id: ms_word_sop.content_blob.id
+      assert_response :success
 
-    assert_equal "attachment; filename=\"ms_word_test.pdf\"", @response.header['Content-Disposition']
-    assert_equal 'application/pdf', @response.header['Content-Type']
-    # assert_equal 16235, @response.header['Content-Length'].to_i
-    assert_includes 9200..16_300, @response.header['Content-Length'].to_i, 'the content length should fall within the rage 9200-9300 bytes'
+      assert_equal "attachment; filename=\"ms_word_test.pdf\"", @response.header['Content-Disposition']
+      assert_equal 'application/pdf', @response.header['Content-Type']
+      # assert_equal 16235, @response.header['Content-Length'].to_i
+      assert_includes 9200..16_300, @response.header['Content-Length'].to_i, 'the content length should fall within the rage 9200-9300 bytes'
 
-    assert File.exist?(ms_word_sop.content_blob.filepath)
-    assert File.exist?(pdf_path)
+      assert File.exist?(ms_word_sop.content_blob.filepath)
+      assert File.exist?(pdf_path)
+    end
   end
 
   test 'get_pdf from url' do
@@ -180,24 +181,25 @@ class ContentBlobsControllerTest < ActionController::TestCase
   end
 
   test 'get_pdf of a doc file from url' do
-    check_for_soffice
-    mock_remote_file "#{Rails.root}/test/fixtures/files/ms_word_test.doc", 'http://somewhere.com/piccy.doc', 'Content-Type' => 'application/pdf'
-    doc_sop = Factory(:sop,
-                      policy: Factory(:all_sysmo_downloadable_policy),
-                      content_blob: Factory(:doc_content_blob,
-                                            data: nil,
-                                            url: 'http://somewhere.com/piccy.doc',
-                                            uuid: UUID.generate))
+    with_soffice do
+      mock_remote_file "#{Rails.root}/test/fixtures/files/ms_word_test.doc", 'http://somewhere.com/piccy.doc', 'Content-Type' => 'application/pdf'
+      doc_sop = Factory(:sop,
+                        policy: Factory(:all_sysmo_downloadable_policy),
+                        content_blob: Factory(:doc_content_blob,
+                                              data: nil,
+                                              url: 'http://somewhere.com/piccy.doc',
+                                              uuid: UUID.generate))
 
-    get :get_pdf, sop_id: doc_sop.id, id: doc_sop.content_blob.id
-    assert_response :success
-    assert_equal "attachment; filename=\"ms_word_test.pdf\"", @response.header['Content-Disposition']
-    assert_equal 'application/pdf', @response.header['Content-Type']
-    # assert_equal 16235, @response.header['Content-Length'].to_i
-    assert_includes 9200..16_300, @response.header['Content-Length'].to_i, 'the content length should fall within the rage 9200-9300 bytes'
+      get :get_pdf, sop_id: doc_sop.id, id: doc_sop.content_blob.id
+      assert_response :success
+      assert_equal "attachment; filename=\"ms_word_test.pdf\"", @response.header['Content-Disposition']
+      assert_equal 'application/pdf', @response.header['Content-Type']
+      # assert_equal 16235, @response.header['Content-Length'].to_i
+      assert_includes 9200..16_300, @response.header['Content-Length'].to_i, 'the content length should fall within the rage 9200-9300 bytes'
 
-    assert !File.exist?(doc_sop.content_blob.filepath)
-    assert File.exist?(doc_sop.content_blob.filepath('pdf')), 'the converted file should remain'
+      assert !File.exist?(doc_sop.content_blob.filepath)
+      assert File.exist?(doc_sop.content_blob.filepath('pdf')), 'the converted file should remain'
+    end
   end
 
   test 'should gracefully handle view_pdf for non existing asset' do

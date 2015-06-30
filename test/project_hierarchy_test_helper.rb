@@ -1,10 +1,4 @@
 module ProjectHierarchyTestHelper
-
-  def skip_hierarchy_tests?
-    #MERGENOTE - skipping
-    skip('skipping hierarchical project tests') unless Seek::Config.project_hierarchy_enabled
-  end
-
   #perform delayed jobs when they are created for easy test
   def sync_delayed_jobs delayed_job_classes=[]
     eval <<-END_EVAL
@@ -28,8 +22,7 @@ module ProjectHierarchyTestHelper
   end
 
   def setup
-        skip_hierarchy_tests?
-        initialize_hierarchical_projects
+    initialize_hierarchical_projects
   end
 
   def reload_extended_models

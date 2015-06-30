@@ -2,44 +2,49 @@ require 'test_helper'
 
 class RdfTripleStoreTest < ActionController::IntegrationTest
 
-    def setup
-      @repository = Seek::Rdf::RdfRepository.instance
-      @project = Factory(:project,:title=>"Test for RDF storage")
-      skip("these tests need a configured triple store setup") unless @repository.configured?
+  def setup
+    @repository = Seek::Rdf::RdfRepository.instance
+    @project = Factory(:project,:title=>"Test for RDF storage")
+    if @repository.configured?
       WebMock.allow_net_connect!
       @graph = RDF::URI.new @repository.get_configuration.private_graph
       @public_graph = RDF::URI.new @repository.get_configuration.public_graph
 
       @subject = @project.rdf_resource
     end
+  end
 
-    def teardown
-      unless @subject.nil?
-        q = @repository.query.delete([:s, :p, :o]).graph(@graph).where([:s, :p, :o])
-        @repository.delete(q)
+  def teardown
+    unless @subject.nil?
+      q = @repository.query.delete([:s, :p, :o]).graph(@graph).where([:s, :p, :o])
+      @repository.delete(q)
 
-        q = @repository.query.delete([:s, :p, :o]).graph(@public_graph).where([:s, :p, :o])
-        @repository.delete(q)
+      q = @repository.query.delete([:s, :p, :o]).graph(@public_graph).where([:s, :p, :o])
+      @repository.delete(q)
 
-        @project.delete_rdf_file
-      end
+      @project.delete_rdf_file
     end
+  end
 
 
-    test "singleton repository" do
+  test "singleton repository" do
+    with_rdf_repo do
       repo = Seek::Rdf::RdfRepository.instance
       repo2 = Seek::Rdf::RdfRepository.instance
       assert repo==repo2
       assert repo.is_a?(Seek::Rdf::VirtuosoRepository)
     end
+  end
 
-
-    test "configured for send" do
+  test "configured for send" do
+    with_rdf_repo do
       assert @repository.configured?
       assert @project.rdf_repository_configured?
     end
+  end
 
-    test "send to store" do
+  test "send to store" do
+    with_rdf_repo do
       @repository.send_rdf(@project)
 
       q = @repository.query.select.where([@subject, RDF::URI.new("http://purl.org/dc/terms/title"), :o]).from(@graph)
@@ -47,8 +52,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
       assert_equal 1,result.count
       assert_equal "Test for RDF storage",result[0][:o].value
     end
+  end
 
-    test "remove public from store" do
+  test "remove public from store" do
+    with_rdf_repo do
       assert @project.can_view?(nil)
       @repository.send_rdf(@project)
       @project.save_rdf_file
@@ -70,8 +77,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
       result = @repository.select(q)
       assert_equal 0,result.count
     end
+  end
 
-    test "remove from store after privacy change" do
+  test "remove from store after privacy change" do
+    with_rdf_repo do
       sop = Factory(:sop,:policy=>Factory(:public_policy))
       assert sop.can_view?(nil)
 
@@ -102,8 +111,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
 
       sop.delete_rdf_file
     end
+  end
 
-    test "remove private from store" do
+  test "remove private from store" do
+    with_rdf_repo do
       sop = Factory(:sop,:policy=>Factory(:private_policy))
       assert !sop.can_view?(nil)
 
@@ -129,8 +140,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
 
       sop.delete_rdf_file
     end
+  end
 
-    test "remove even after a change" do
+  test "remove even after a change" do
+    with_rdf_repo do
       @repository.send_rdf(@project)
 
 
@@ -142,8 +155,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
       result = @repository.select(q)
       assert_equal 0,result.count
     end
+  end
 
-    test "uris of items related to" do
+  test "uris of items related to" do
+    with_rdf_repo do
       person = Factory(:person)
       data_file = Factory(:data_file)
       model = Factory(:model)
@@ -170,13 +185,12 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
       uris = @repository.uris_of_items_related_to @project
       assert_equal 3,uris.count
       assert_equal ["http://localhost:3000/data_files/#{data_file.id}","http://localhost:3000/people/#{person.id}","http://localhost:3000/sops/#{sop.id}"],uris.sort
-
-
     end
+  end
 
-    test "update rdf" do
+  test "update rdf" do
+    with_rdf_repo do
       @repository.send_rdf(@project)
-
 
       title = @project.title
 
@@ -207,8 +221,10 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
       result = @repository.select(q)
       assert_equal 1,result.count, "there should only be one modified statement"
     end
+  end
 
-    test "update rdf change visibility" do
+  test "update rdf change visibility" do
+    with_rdf_repo do
       sop = Factory(:sop,:policy=>Factory(:public_policy))
       assert sop.can_view?(nil)
 
@@ -266,6 +282,5 @@ class RdfTripleStoreTest < ActionController::IntegrationTest
 
       sop.delete_rdf_file
     end
-
-
+  end
 end

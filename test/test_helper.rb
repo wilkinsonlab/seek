@@ -112,7 +112,7 @@ class ActiveSupport::TestCase
 
 
 
-  def check_for_soffice
+  def soffice_available?
     port = ConvertOffice::ConvertOfficeConfig.options[:soffice_port]
     @@soffice_available ||= begin
       soc = TCPSocket.new("localhost", port)
@@ -121,7 +121,25 @@ class ActiveSupport::TestCase
     rescue
       false
     end
-    skip("soffice is not available on port #{port}, skipping test") unless @@soffice_available
+
+    @@soffice_available
+  end
+
+  def with_soffice(&block) # check_for_soffice
+    omit_if(!soffice_available?,
+            "soffice is not available on port #{ConvertOffice::ConvertOfficeConfig.options[:soffice_port]}, skipping test", &block)
+  end
+
+  def with_project_hierarchy(&block) # skip_hierarchy_tests?
+    omit_if(!Seek::Config.project_hierarchy_enabled, 'skipping hierarchical project tests', &block)
+  end
+
+  def with_rest_schema_check(&block) # skip_rest_schema_check?
+    omit_if(skip_rest_schema_check?, 'currently skipping REST API schema check', &block)
+  end
+
+  def with_rdf_repo(&block)
+    omit_if(!Seek::Rdf::RdfRepository.instance.configured?, "these tests need a configured triple store setup", &block)
   end
 
   def skip_rest_schema_check?

@@ -44,26 +44,27 @@ class DataciteDoiTest < ActionController::IntegrationTest
   end
 
   test "authorization for mint_doi_confirm" do
-    skip("mint_doi_confirmation")
-    DOIABLE_ASSETS.each do |type|
-      asset = Factory(type.to_sym, :policy=>Factory(:private_policy), :contributor => User.current_user)
-      refute asset.is_published?
-      assert asset.can_manage?
-      refute asset.is_doiable?(asset.version)
+    omit("mint_doi_confirmation") do
+      DOIABLE_ASSETS.each do |type|
+        asset = Factory(type.to_sym, :policy=>Factory(:private_policy), :contributor => User.current_user)
+        refute asset.is_published?
+        assert asset.can_manage?
+        refute asset.is_doiable?(asset.version)
 
-      get "/#{type.pluralize}/#{asset.id}/mint_doi_confirm?version=#{asset.version}"
-      assert_response :redirect
+        get "/#{type.pluralize}/#{asset.id}/mint_doi_confirm?version=#{asset.version}"
+        assert_response :redirect
 
-      asset.publish!
-      assert asset.reload.is_published?
-      a_user = Factory(:user, :login => 'a_user')
-      post '/session', :login => 'a_user', :password => 'blah'
-      assert_equal a_user,User.current_user
-      refute asset.can_manage?
-      refute asset.is_doiable?(asset.version)
+        asset.publish!
+        assert asset.reload.is_published?
+        a_user = Factory(:user, :login => 'a_user')
+        post '/session', :login => 'a_user', :password => 'blah'
+        assert_equal a_user,User.current_user
+        refute asset.can_manage?
+        refute asset.is_doiable?(asset.version)
 
-      get "/#{type.pluralize}/#{asset.id}/mint_doi_confirm?version=#{asset.version}"
-      assert_response :redirect
+        get "/#{type.pluralize}/#{asset.id}/mint_doi_confirm?version=#{asset.version}"
+        assert_response :redirect
+      end
     end
   end
 
@@ -125,21 +126,22 @@ class DataciteDoiTest < ActionController::IntegrationTest
   end
 
   test 'minted_doi' do
-    skip("minted_doi")
-    DOIABLE_ASSETS.each do |type|
-      asset = Factory(type.to_sym,:policy=>Factory(:public_policy))
-      assert asset.is_published?
-      assert asset.can_manage?
+    omit("minted_doi") do
+      DOIABLE_ASSETS.each do |type|
+        asset = Factory(type.to_sym,:policy=>Factory(:public_policy))
+        assert asset.is_published?
+        assert asset.can_manage?
 
-      doi = '10.5072/my_test'
-      url = "#{root_url}data_files/#{asset.id}?version=#{asset.version}"
+        doi = '10.5072/my_test'
+        url = "#{root_url}data_files/#{asset.id}?version=#{asset.version}"
 
-      get "/#{type.pluralize}/#{asset.id}/minted_doi?version=#{asset.version}&doi=#{doi}&url=#{url}"
-      assert_response :success
+        get "/#{type.pluralize}/#{asset.id}/minted_doi?version=#{asset.version}&doi=#{doi}&url=#{url}"
+        assert_response :success
 
-      assert_select "li", :text => /#{doi}/
-      assert_select "li", :text => "Resolved URL: http://test.host/data_files/#{asset.id}?version=1"
-      assert_select "li", :text => /#{asset.title}/
+        assert_select "li", :text => /#{doi}/
+        assert_select "li", :text => "Resolved URL: http://test.host/data_files/#{asset.id}?version=1"
+        assert_select "li", :text => /#{asset.title}/
+      end
     end
   end
 
