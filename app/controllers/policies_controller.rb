@@ -73,7 +73,7 @@ class PoliciesController < ApplicationController
       cloned_resource = resource.dup
       cloned_resource= resource_with_assigned_projects cloned_resource,params[:project_ids]
       cloned_resource.policy = policy
-      cloned_resource.creators = creators if cloned_resource.respond_to?:creators
+      cloned_resource.creators = creators if cloned_resource.respond_to? :creators
       cloned_resource.contributor = contributor_person
 
       asset_managers = get_asset_managers cloned_resource
@@ -135,7 +135,7 @@ class PoliciesController < ApplicationController
      resource
   end
 
-  def sharing_params_to_policy params=params
+  def sharing_params_to_policy params
       policy =Policy.new()
       policy.sharing_scope = params["sharing_scope"].to_i unless params[:sharing_scope].blank?
       policy.access_type = params[:access_type].blank? ? 0 : params["access_type"].to_i
