@@ -92,5 +92,7 @@ module SEEK
     #uncomment and set the value if running under a suburi
     #config.relative_url_root = '/seek'
 
+    # set the URL
+    config.representer.default_url_options = {:host => "127.0.0.1:3000"}
   end
 end

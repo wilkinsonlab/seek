@@ -7,6 +7,9 @@ class PeopleController < ApplicationController
   include Seek::DestroyHandling
   include Seek::AdminBulkAction
 
+  include Roar::Rails::ControllerAdditions
+#  include Roar::Rails::ControllerAdditions::Render
+
   before_filter :find_and_authorize_requested_item, :only => [:show, :edit, :update, :destroy]
   before_filter :current_user_exists,:only=>[:register,:create,:new]
   before_filter :is_during_registration,:only=>[:register]
@@ -74,6 +77,7 @@ class PeopleController < ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml
+      format.json {render :json => @people.extend(PeopleRepresenter) }
     end
   end
 
@@ -83,7 +87,8 @@ class PeopleController < ApplicationController
     respond_to do |format|
       format.html # show.html.erb
       format.rdf { render :template=>'rdf/show'}
-      format.xml
+      format.xml { render :xml => @person }
+      format.json {render :json => @person.extend(PersonRepresenter)}
     end
   end
 
@@ -170,6 +175,7 @@ class PeopleController < ApplicationController
             format.html { redirect_to(@person) }
           end
           format.xml { render :xml => @person, :status => :created, :location => @person }
+          format.json { render :json => @person.extend(PersonRepresenter), :status => :created, :location => @person }
         else
           Mailer.signup(current_user, base_host).deliver
           flash[:notice]="An email has been sent to you to confirm your email address. You need to respond to this email before you can login"
@@ -179,6 +185,7 @@ class PeopleController < ApplicationController
       else
         format.html { render redirect_action }
         format.xml { render :xml => @person.errors, :status => :unprocessable_entity }
+        format.json { render :json => @person.errors, :status => :unprocessable_entity }
       end
     end
   end

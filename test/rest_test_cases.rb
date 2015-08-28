@@ -7,12 +7,46 @@ module RestTestCases
 
   SCHEMA_FILE_PATH = File.join(Rails.root, 'public', '2010', 'xml', 'rest', 'schema-v1.xsd')
   
+  def test_index_rest_api_json
+    object=rest_api_test_object
+
+    get :index, :format=>"json"
+    perform_json_api_checks
+  end
+
   def test_index_rest_api_xml
     #to make sure something in the database is created
     object=rest_api_test_object
 
     get :index, :format=>"xml"
     perform_api_checks
+  end
+
+  def test_get_rest_api_json object=rest_api_test_object
+    get :show,:id=>object, :format=>"json"
+    perform_json_api_checks
+
+    hash = JSON.parse @response.body, :symbolize_names => true
+
+    id = hash[:id]
+    assert_not_nil id
+
+    links = hash[:links]
+    assert_not_nil links
+
+    found = false
+    links.each do |link|
+      assert link.is_a?(Hash)
+      rel = link[:rel]
+      assert_not_nil rel
+      if rel == 'url'
+        href = link[:href]
+        assert_not_nil href
+        found = true
+      end
+    end
+
+    assert found
   end
 
   def test_get_rest_api_xml object=rest_api_test_object
@@ -59,6 +93,10 @@ module RestTestCases
     valid,message = check_xml
     assert valid,message        
     validate_xml_against_schema(@response.body)
+  end
+  
+  def perform_json_api_checks
+    assert_response :success    
   end
   
   def check_xml

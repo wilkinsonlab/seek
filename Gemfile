@@ -56,6 +56,9 @@ gem 'transaction_isolation'
 #gem for BiVeS and BudHat
 gem 'bives'
 
+#gem for JSON API
+gem 'roar-rails'
+
 
 #Linked to SysMO Git repositories
 gem 'gibberish', :git => "https://github.com/SysMO-DB/gibberish.git"
