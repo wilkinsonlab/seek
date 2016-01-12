@@ -77,8 +77,4 @@
           <input type="button" id='deselect_all_strains' name="deselect_all_strains" value="Deselect all" onclick="deselectAll('strain_table')">
         </div>
     <% end -%>
-    <% if logged_in_and_member? %>
-        <%= create_strain_link -%><br/>
-        (create a new strain or one based on the selected one)
-    <% end %>
 <% end %>

@@ -51,6 +51,17 @@
         <% end %>
     <% end %>
 
+    <% if ['biosamples','samples','specimens','strains'].include?(controller_name) %>
+      <%= alert_box('warning', :id => 'samples-notice') do %>
+            <p>
+              The Biosamples section of <%= Seek::Config.application_name %> is currently being reworked and so creation of new Biosamples resources has been temporarily disabled.
+            </p>
+            <p>
+              This feature will be re-enabled after the rework, which is estimated to be finished in Spring 2016.
+            </p>
+      <% end %>
+    <% end %>
+
     <%# main content part of every page -%>
     <%= yield :layout %>
   </div>
