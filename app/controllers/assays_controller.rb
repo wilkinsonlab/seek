@@ -49,7 +49,7 @@ class AssaysController < ApplicationController
     end
 
     p = @assay.openbis_project
-    Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_endpoint)
+    Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_as_endpoint, p.openbis_dss_endpoint)
     if params[:experiment_perm_id]
       @experiments=[Seek::Openbis::Experiment.new(params[:experiment_perm_id])]
     else

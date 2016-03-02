@@ -225,7 +225,7 @@ class Project < ActiveRecord::Base
   end
 
   def openbis_supported?
-    openbis_password && openbis_username && openbis_endpoint
+    openbis_password && openbis_username && openbis_as_endpoint && openbis_dss_endpoint
   end
 
   #allows a new project to be spawned off as a descendant of this project, retaining the same membership but existing

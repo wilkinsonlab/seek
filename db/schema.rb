@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150327160413) do
+ActiveRecord::Schema.define(:version => 20160301140027) do
 
   create_table "activity_logs", :force => true do |t|
     t.string   "action"
@@ -1031,7 +1031,7 @@ ActiveRecord::Schema.define(:version => 20150327160413) do
     t.text     "description"
     t.integer  "avatar_id"
     t.integer  "default_policy_id"
-    t.string   "first_letter",      :limit => 1
+    t.string   "first_letter",         :limit => 1
     t.string   "site_credentials"
     t.string   "site_root_uri"
     t.datetime "last_jerm_run"
@@ -1041,7 +1041,8 @@ ActiveRecord::Schema.define(:version => 20150327160413) do
     t.integer  "parent_id"
     t.string   "openbis_username"
     t.string   "openbis_password"
-    t.string   "openbis_endpoint"
+    t.string   "openbis_as_endpoint"
+    t.string   "openbis_dss_endpoint"
   end
 
   create_table "projects_publications", :id => false, :force => true do |t|

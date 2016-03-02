@@ -4,13 +4,13 @@ module Seek
     #this is bad practice and not threadsafe or secure
     class ConnectionInfo
       include Singleton
-      attr_accessor :username,:password,:endpoint
+      attr_accessor :as_endpoint,:dss_endpoint,:session_token
 
-      def self.setup username,password,endpoint
+      def self.setup username,password,as_endpoint,dss_endpoint
         me = self.instance
-        me.username=username
-        me.password=password
-        me.endpoint=endpoint
+        me.as_endpoint=as_endpoint
+        me.dss_endpoint=dss_endpoint
+        me.session_token = Fairdom::OpenbisApi::Authentication.new(username, password, as_endpoint).login["token"]
       end
     end
   end

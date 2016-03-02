@@ -15,9 +15,6 @@ class ApplicationController < ActionController::Base
 
   before_filter :log_extra_exception_data
 
-
-  before_filter :setup_openbis_connection
-
   after_filter :log_event
 
   include AuthenticatedSystem
@@ -35,15 +32,6 @@ class ApplicationController < ActionController::Base
 
   layout Seek::Config.main_layout
 
-  #a horrible hack just for the demo.
-  #sets the connection according to the first project it finds, rather than the relevant project.
-  #for the demo there will only be 1 set of credentials so this doesn't matter
-  def setup_openbis_connection
-    project=Project.where("openbis_username IS NOT NULL").first
-    if project
-      Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
-    end
-  end
 
   def with_current_user
     User.with_current_user current_user do

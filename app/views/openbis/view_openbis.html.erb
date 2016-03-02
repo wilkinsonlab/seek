@@ -1,7 +1,4 @@
 <%
-    project = @assay.openbis_project
-    Seek::Openbis::ConnectionInfo.setup(project.openbis_username, project.openbis_password, project.openbis_endpoint)
-
    @sample_perm_ids = @assay.openbis_samples.map(&:perm_id).compact
    @dataset_perm_ids = @assay.data_files.map(&:perm_id).compact
 %>

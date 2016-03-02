@@ -23,7 +23,7 @@ module Seek
       end
 
       def populate_from_perm_id perm_id
-        json = do_query_by_perm_id(perm_id)
+        json = query_application_server_by_perm_id(perm_id)
         populate_from_json(json[json_key][0])
       end
 
@@ -40,7 +40,7 @@ module Seek
       end
 
       def all
-        json = do_query_by_perm_id
+        json = query_application_server_by_perm_id
         construct_from_json(json)
       end
 
@@ -52,7 +52,7 @@ module Seek
 
       def find_by_perm_ids perm_ids
         ids_str=perm_ids.compact.uniq.join(",")
-        json = do_query_by_perm_id(ids_str)
+        json = query_application_server_by_perm_id(ids_str)
         construct_from_json(json)
       end
 
@@ -60,16 +60,16 @@ module Seek
         properties["COMMENT"] || ""
       end
 
-      def do_query_by_perm_id perm_id=""
-        cache_key = "openbis-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
+      def query_application_server_by_perm_id perm_id=""
+        cache_key = "openbis-application-server-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
         Rails.cache.fetch(cache_key) do
-          query_instance.query({:type=>type_name,:attribute=>"permId",:attribute_value=>perm_id})
+          application_server_query_instance.query({:entityType=>type_name,:queryType=>"ATTRIBUTE",:attribute=>"PermID",:attributeValue=>perm_id})
         end
       end
 
-      def query_instance
+      def application_server_query_instance
         info = Seek::Openbis::ConnectionInfo.instance
-        Fairdom::OpenbisApi::Query.new(info.username, info.password, info.endpoint)
+        Fairdom::OpenbisApi::ApplicationServerQuery.new(info.as_endpoint, info.session_token)
       end
 
       def samples

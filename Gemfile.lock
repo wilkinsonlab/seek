@@ -1,9 +1,8 @@
 GIT
-  remote: https://github.com/FAIRdom/openbis-api-gem.git
-  revision: a059d4066bc58be5a3354b1b5bd220cd34a70413
-  branch: hacking-for-demo
+  remote: https://github.com/FAIRdom/openseek-api-gem.git
+  revision: a99a07d51ebde6c5a5ac6d4f19cbcec753678d25
   specs:
-    openbis-api-gem (0.4.1)
+    openseek-api-gem (0.2.0)
 
 GIT
   remote: https://github.com/SysMO-DB/acts_as_activity_logged.git
@@ -803,7 +802,7 @@ DEPENDENCIES
   mysql2
   nokogiri
   open_id_authentication!
-  openbis-api-gem!
+  openseek-api-gem!
   passenger
   pg
   piwik_analytics!
