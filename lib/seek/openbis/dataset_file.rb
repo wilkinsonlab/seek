@@ -2,12 +2,28 @@ module Seek
   module Openbis
     class DatasetFile
 
-      attr_reader :dataset_id,:file_id,:path,:is_directory,:file_length
+      attr_reader :json
+
+      def files
+        files = []
+        @json["datasetfiles"][0].each do |json_file|
+          files << file json_file
+        end
+      end
+
+      def file json_file
+        path = json_file["path"]
+        size = json_file["fileLength"].last
+        is_directory = json_file["isDirectory"]
+        dataset_id = json_file["dataset"]
+        {:path=>path,:size=>size,:dataset_id=>dataset_id,:is_directory=>json_file[]}
+      end
 
       def query_datastore_server_by_perm_id perm_id=""
         cache_key = "openbis-datastore-server-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
         Rails.cache.fetch(cache_key) do
-          datastore_server_query_instance.query({:entityType=>type_name,:queryType=>"ATTRIBUTE",:attribute=>"PermID",:attributeValue=>perm_id})
+          @json = datastore_server_query_instance.query({:entityType=>type_name,:queryType=>"ATTRIBUTE",:attribute=>"PermID",:attributeValue=>perm_id})
+          @json
         end
       end
 

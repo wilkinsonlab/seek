@@ -27,4 +27,11 @@
     <%= dataset.perm_id %>
   </td>
 
+  <td>
+    <% dataset.dataset_files.each do |file| %>
+    <%= file.path %>
+    <%= file.size %>
+    <%#= link_to "Download", Seek::Openbis::DatasetFile.new().datastore_server_download_instance('file', file.dataset_id, source, dest)%>
+    <%#= link_to "Download All", Seek::Openbis::DatasetFile.new().datastore_server_download_instance('datasetfile', file.dataset_id, source, dest)%>
+  </td>
 </tr>
