@@ -261,6 +261,7 @@ SEEK::Application.routes.draw do
       get :new_object_based_on_existing_one
       get :view_openbis
       post :add_openbis_stuff
+      get :download_openbis_file
     end
     resources :people,:projects,:investigations,:studies,:models,:openbis_samples,:sops,:data_files,:publications,:strains,:only=>[:index]
   end

@@ -7,7 +7,7 @@ class AssaysController < ApplicationController
   before_filter :assays_enabled?
 
   before_filter :find_assets, :only=>[:index]
-  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one,:view_openbis,:add_openbis_stuff]
+  before_filter :find_and_authorize_requested_item, :only=>[:edit, :update, :destroy, :show,:new_object_based_on_existing_one,:view_openbis,:add_openbis_stuff,:download_openbis_file]
 
   before_filter :openbis_supported,:only=>[:view_openbis]
 
@@ -57,6 +57,18 @@ class AssaysController < ApplicationController
     end
 
     render :template=>"openbis/view_openbis"
+  end
+
+  def download_openbis_file
+    if (params[:dataset_perm_id])
+      dest = Seek::Config.temporary_filestore_path + '/' + params[:file_name]
+      p = @assay.openbis_project
+      Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_as_endpoint, p.openbis_dss_endpoint)
+      Seek::Openbis::DatasetFile.new().download_by_perm_id('file', params[:dataset_perm_id], params[:file_path], dest)
+      send_file dest, :filename => params[:file_name], :type => "application/octet-stream", :disposition => 'attachment'
+    else
+      #redirect_on_error @asset_version,"Unable to find a copy of the file for download, or an alternative location. Please contact an administrator of #{Seek::Config.application_name}."
+    end
   end
 
   def add_openbis_stuff
