@@ -6,7 +6,7 @@ module Seek
 
       def populate_from_json(json)
         @sample_type=json["sample_type"]
-        @dataset_ids = json["datasets"]
+        @dataset_ids = json["datasets"].last
         @experiment_id = json["experiment"]
         @identifier=json["identifier"]
         super(json)

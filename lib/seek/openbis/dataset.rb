@@ -5,12 +5,10 @@ module Seek
       attr_reader :dataset_type,:experiment_id,:sample_ids
 
       def populate_from_json(json)
-        json[]
-        super(json)
         @dataset_type=json["dataset_type"]
         @experiment_id = json["experiment"]
-        @sample_ids = json["samples"]
-        self
+        @sample_ids = json["samples"].last
+        super(json)
       end
 
       def dataset_type_text
