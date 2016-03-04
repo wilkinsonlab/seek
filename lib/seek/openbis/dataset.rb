@@ -5,12 +5,10 @@ module Seek
       attr_reader :dataset_type,:experiment_id,:sample_ids
 
       def populate_from_json(json)
-        json[]
-        super(json)
         @dataset_type=json["dataset_type"]
         @experiment_id = json["experiment"]
-        @sample_ids = json["samples"]
-        self
+        @sample_ids = json["samples"].last
+        super(json)
       end
 
       def dataset_type_text
@@ -31,6 +29,10 @@ module Seek
         #dataset_file_instance = Seek::Openbis::DatasetFile.new()
         #dataset_file_instance.query_datastore_server_by_perm_id(perm_id)
         #dataset_file_instance.files
+      end
+
+      def dataset_file
+        Seek::Openbis::DatasetFile.new(perm_id)
       end
 
       def type_name

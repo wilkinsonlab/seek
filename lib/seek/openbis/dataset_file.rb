@@ -1,29 +1,49 @@
 module Seek
   module Openbis
-    class DatasetFile
+    class DatasetFile < Entity
 
-      attr_reader :json
+      File = Struct.new(:path, :name, :size, :is_directory, :dataset_id)
+      attr_reader :files
 
-      def files
-        files = []
-        @json["datasetfiles"][0].each do |json_file|
-          files << file json_file
-        end
+      def find_by_perm_ids perm_ids
+        ids_str=perm_ids.compact.uniq.join(",")
+        json = query_datastore_server_by_perm_id(ids_str)
+        construct_from_json(json)
       end
 
-      def file json_file
-        path = json_file["path"]
-        size = json_file["fileLength"].last
-        is_directory = json_file["isDirectory"]
-        dataset_id = json_file["dataset"]
-        {:path=>path,:size=>size,:dataset_id=>dataset_id,:is_directory=>json_file[]}
+      def all
+        json = query_datastore_server_by_perm_id
+        construct_from_json(json)
+      end
+
+      def populate_from_json(json)
+        @files = []
+        json.each do |json_file|
+          path=json_file["filePermId"]["filePath"]
+          name=path.split('/').last
+          dataset_id = json_file["filePermId"]["dataSetId"]["permId"]
+          #TODO size in human readable format
+          size = json_file["fileLength"].last
+          is_directory = json_file["isDirectory"]
+
+          @files << File.new(path,name,size,is_directory,dataset_id)
+        end
+        @files
+      end
+
+      def populate_from_perm_id perm_id
+        json = query_datastore_server_by_perm_id(perm_id)
+        populate_from_json(json[json_key][1])
+      end
+
+      def construct_from_json(json)
+        self.class.new.populate_from_json(json[json_key][1])
       end
 
       def query_datastore_server_by_perm_id perm_id=""
         cache_key = "openbis-datastore-server-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
         Rails.cache.fetch(cache_key) do
-          @json = datastore_server_query_instance.query({:entityType=>type_name,:queryType=>"ATTRIBUTE",:attribute=>"PermID",:attributeValue=>perm_id})
-          @json
+          datastore_server_query_instance.query({:entityType => type_name, :queryType => "ATTRIBUTE", :attribute => "PermID", :attributeValue => perm_id})
         end
       end
 

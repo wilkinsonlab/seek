@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/FAIRdom/openseek-api-gem.git
-  revision: a99a07d51ebde6c5a5ac6d4f19cbcec753678d25
+  revision: a74b4b5b416d111e092f9860f53d48a533571b36
   specs:
     openseek-api-gem (0.2.0)
 
