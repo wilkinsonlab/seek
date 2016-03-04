@@ -27,4 +27,15 @@
     <%= dataset.perm_id %>
   </td>
 
+  <td>
+    <% dataset.dataset_file.files.each do |file| %>
+        <% if file.size > 0 %>
+          <%= file.name %>
+          <%= number_to_human_size(file.size) %>
+          <% download_url = '' %>
+          <%= image_tag_for_key('download', download_url, "Download", {:title => 'Download this file'}, "") -%>
+        <% end %>
+    <% end %>
+  </td>
+
 </tr>

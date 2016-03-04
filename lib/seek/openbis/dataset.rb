@@ -46,6 +46,10 @@ module Seek
         Fairdom::OpenbisApi::DataStoreDownload.new(info.dss_endpoint, info.session_token)
       end
 
+      def dataset_file
+        Seek::Openbis::DatasetFile.new(perm_id)
+      end
+
       def type_name
         'DataSet'
       end
