@@ -1,4 +1,4 @@
-class SendPeriodicEmailsJob < SeekJob
+class SendPeriodicEmailsJob < SeekEmailJob
   DELAYS = { 'daily' => 1.day, 'weekly' => 1.week, 'monthly' => 1.month }
 
   Subscription::FREQUENCIES.drop(1).each do |frequency|
@@ -14,12 +14,6 @@ class SendPeriodicEmailsJob < SeekJob
   def initialize(frequency)
     @frequency = frequency.to_s.downcase
     fail Exception.new("invalid frequency - #{frequency}") unless DELAYS.keys.include?(@frequency)
-  end
-
-  def before(_job)
-    # make sure the SMTP,site_base_host configuration is in sync with current SEEK settings
-    Seek::Config.smtp_propagate
-    Seek::Config.site_base_host_propagate
   end
 
   def perform_job(_item)
@@ -64,7 +58,7 @@ class SendPeriodicEmailsJob < SeekJob
   def send_subscription_mails(logs)
     if Seek::Config.email_enabled
       # strip the logs down to those that are relevant
-      logs.select do |log|
+      logs.select! do |log|
         log.activity_loggable.try(:subscribable?)
       end
 
@@ -89,9 +83,9 @@ class SendPeriodicEmailsJob < SeekJob
 
     # get the logs for this persons subscribable items, where the subscription has the correct frequency
     logs_for_visible_items.select do |log|
-      !person.subscriptions.for_subscribable(log.activity_loggable).select do |subscription|
+      person.subscriptions.for_subscribable(log.activity_loggable).any? do |subscription|
         subscription.frequency == frequency
-      end.empty?
+      end
     end
   end
 
@@ -104,7 +98,7 @@ class SendPeriodicEmailsJob < SeekJob
 
   # returns an enumaration of the people subscribed to the items in the logs
   def people_subscribed_to_logged_items(logs)
-    items = logs.collect(&:activity_loggable).uniq
+    items = logs.collect(&:activity_loggable).uniq.compact
     items.collect do |item|
       Subscription.where(subscribable_type: item.class.name, subscribable_id: item.id).collect(&:person)
     end.flatten.compact.uniq

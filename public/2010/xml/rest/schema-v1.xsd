@@ -228,6 +228,8 @@
                        maxOccurs="1"></xsd:element>
                     <xsd:element name="submitter" type="Submitter"
 						minOccurs="1" maxOccurs="1"></xsd:element>
+          <xsd:element name="creators" type="Creators" minOccurs="1"
+                       maxOccurs="1"></xsd:element>
                     <xsd:element name="policy" type="xsd:anyType" minOccurs="0" maxOccurs="1"></xsd:element>
           <xsd:element name="associated" type="AssociatedItems"
                        minOccurs="1" maxOccurs="1"></xsd:element>
@@ -287,6 +289,8 @@
                        maxOccurs="1"></xsd:element>
           <xsd:element name="submitter" type="Submitter"
                        minOccurs="1" maxOccurs="1"></xsd:element>
+          <xsd:element name="creators" type="Creators" minOccurs="1"
+                       maxOccurs="1"></xsd:element>
                     <xsd:element name="policy" type="xsd:anyType" minOccurs="0" maxOccurs="1"></xsd:element>
           <xsd:element name="associated" type="AssociatedItems"
                        minOccurs="1" maxOccurs="1"></xsd:element>
@@ -348,6 +352,8 @@
                        minOccurs="1" maxOccurs="1"></xsd:element>
           <xsd:element name="organisms" type="OrganismItems"
                        minOccurs="0" maxOccurs="1"></xsd:element>
+          <xsd:element name="creators" type="Creators" minOccurs="1"
+                       maxOccurs="1"></xsd:element>
           <xsd:element name="policy" type="xsd:anyType" minOccurs="0" maxOccurs="1"></xsd:element>
           <xsd:element name="tags" type="Tags" maxOccurs="1"
                        minOccurs="1"></xsd:element>
@@ -978,9 +984,9 @@
           <xsd:element name="organisms" type="OrganismItems"
                        maxOccurs="1" minOccurs="0"></xsd:element>
           <xsd:element name="webpage" type="xsd:string"
-                       maxOccurs="1" minOccurs="1"></xsd:element>
+                       maxOccurs="1" minOccurs="0"></xsd:element>
           <xsd:element name="internal_webpage" type="xsd:string"
-                       maxOccurs="1" minOccurs="1"></xsd:element>
+                       maxOccurs="1" minOccurs="0"></xsd:element>
           <xsd:element name="avatars" type="Avatars" maxOccurs="1"
                        minOccurs="1"></xsd:element>
           <xsd:element name="associated" type="AssociatedItems"
@@ -1038,11 +1044,11 @@
           <xsd:element name="uuid" type="xsd:string" maxOccurs="1"
                        minOccurs="1"></xsd:element>
           <xsd:element name="email" type="xsd:string" maxOccurs="1"
-                       minOccurs="1"></xsd:element>
+                       minOccurs="0"></xsd:element>
           <xsd:element name="webpage" type="xsd:string"
-                       maxOccurs="1" minOccurs="1"></xsd:element>
+                       maxOccurs="1" minOccurs="0"></xsd:element>
           <xsd:element name="phone" type="xsd:string" maxOccurs="1"
-                       minOccurs="1"></xsd:element>
+                       minOccurs="0"></xsd:element>
           <xsd:element name="avatars" type="Avatars" maxOccurs="1"
                        minOccurs="1"></xsd:element>
           <xsd:element name="tags" type="Tags" maxOccurs="1"

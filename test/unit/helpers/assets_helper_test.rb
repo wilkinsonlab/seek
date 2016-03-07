@@ -9,28 +9,33 @@ class AssetsHelperTest < ActionView::TestCase
     @project = Factory :project
   end
 
-  def test_asset_version_links
-    admin = Factory(:admin)
-    User.with_current_user admin.user do
-      model = Factory(:teusink_model, :contributor=>admin.user,:title=>"Teusink")
-      v = Factory(:model_version, :model=>model)
-      model.reload
-      model_versions = model.versions
-      assert_equal 2, model_versions.count
-      model_version_links = asset_version_links model_versions
-      assert_equal 2, model_version_links.count
-      link1 = link_to('Teusink', "/models/#{model.id}" + "?version=1")
-      link2 = link_to('Teusink', "/models/#{model.id}" + "?version=2")
-      assert model_version_links.include?link1
-      assert model_version_links.include?link2
-    end
-  end
 
   test "authorised assets" do
     @assets = create_a_bunch_of_assets
     with_auth_lookup_disabled do
       check_expected_authorised
     end
+  end
+
+  test "rendered_asset_view" do
+    person = Factory(:admin)
+    User.current_user=person.user
+
+    #show something for presentation
+    pres = Factory(:presentation,:policy=>Factory(:public_policy))
+    pres.content_blob.url = 'http://www.slideshare.net/mygrid/if-we-build-it-will-they-come-13652794/'
+    pres.content_blob.save!
+    refute rendered_asset_view(pres).blank?
+
+    #nothing  for private
+    pres = Factory(:presentation,:policy=>Factory(:private_policy))
+    pres.content_blob.url = 'http://www.slideshare.net/mygrid/if-we-build-it-will-they-come-13652794/'
+    pres.content_blob.save!
+    assert rendered_asset_view(pres).blank?
+
+    #nothing  for none slideshare
+    pres = Factory(:presentation,:policy=>Factory(:public_policy))
+    assert rendered_asset_view(pres).blank?
   end
 
   test "authorised assets with lookup" do

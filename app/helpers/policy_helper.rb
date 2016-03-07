@@ -2,7 +2,14 @@ module PolicyHelper
   
   def policy_selection_options policies = nil, resource = nil, access_type = nil
     policies ||= [Policy::NO_ACCESS,Policy::VISIBLE,Policy::ACCESSIBLE,Policy::EDITING,Policy::MANAGING]
-    policies.delete(Policy::ACCESSIBLE) unless resource.try(:is_downloadable?)
+    unless resource.try(:is_downloadable?)
+      policies.delete(Policy::ACCESSIBLE)
+      if access_type == Policy::ACCESSIBLE
+        #handle access_type = ACCESSIBLE, and !resource.is_downloadable?
+        # In that case set access_type to VISIBLE
+        access_type = Policy::VISIBLE
+      end
+    end
     options=""
     policies.each do |policy|
       options << "<option value='#{policy}' #{"selected='selected'" if access_type == policy}>#{Policy.get_access_type_wording(policy, resource.try(:is_downloadable?))} </option>"
@@ -121,7 +128,7 @@ module PolicyHelper
 
   def process_privileged_people privileged_people, resource_name
     html = ''
-    if !privileged_people.blank?
+    unless privileged_people.blank?
       html << "<h3> Privileged people:</h3>"
       privileged_people.each do |key, value|
         value.each do |v|
@@ -130,8 +137,6 @@ module PolicyHelper
             html << "#{h(v.name)} can #{Policy.get_access_type_wording(Policy::MANAGING, resource_name.camelize.constantize.new().try(:is_downloadable?)).downcase} as an uploader"
           elsif key == 'creators'
             html << "#{h(v.name)} can #{Policy.get_access_type_wording(Policy::EDITING, resource_name.camelize.constantize.new().try(:is_downloadable?)).downcase} as a creator"
-          elsif key == 'asset_managers'
-            html << "#{h(v.name)} can #{Policy.get_access_type_wording(Policy::MANAGING, resource_name.camelize.constantize.new().try(:is_downloadable?)).downcase} as an asset manager"
           end
           html << "</p>"
         end

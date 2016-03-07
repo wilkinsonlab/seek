@@ -1,21 +1,24 @@
 var cy;
-var default_node_width = 195;
-var default_node_height = 35;
-var default_font_size = 11;
+var default_node_width = 250;
+var default_node_height = 65;
+var default_font_size = 16;
 var default_color = '#323232';
+var default_text_max_width = 245;
 
 jQuery.noConflict();
 var $j = jQuery;
 
 function drawGraph(elements, current_element_id){
-    $j('#cy').cytoscape({
+    cy=cytoscape({
+        container: document.getElementById('cy'),
+        showOverlay: false,
+
         layout: {
-            name: 'breadthfirst'
+            name: 'breadthfirst',
+            directed: true
         },
         boxSelectionEnabled: true,
         autolock: false,
-        showOverlay: false,
-
         style: cytoscape.stylesheet()
             .selector('node')
             .css({
@@ -31,7 +34,9 @@ function drawGraph(elements, current_element_id){
                 'color':default_color,
                 'width':default_node_width,
                 'height':default_node_height,
-                'font-size':default_font_size
+                'font-size':default_font_size,
+                'text-wrap': 'wrap',
+                'text-max-width': default_text_max_width
             })
 
             .selector('edge')
@@ -43,7 +48,7 @@ function drawGraph(elements, current_element_id){
                 'target-arrow-color': 'data(faveColor)',
                 'content': 'data(name)',
                 'color': '#323232',
-                'font-size': (default_font_size-2)
+                'font-size': (default_font_size)
             }),
 
         elements: elements,
@@ -71,8 +76,10 @@ function drawGraph(elements, current_element_id){
                 animateNode(current_node);
                 displayNodeInfo(current_node);
 
-                disableMouseWheel();
+                //disableMouseWheel();
                 resizeGraph();
+                //need put zoom after resizeGraph, otherwise fit() does not work
+                cy.zoomingEnabled(false);
             }else{
                 $j('.isa_graph')[0].hide();
             }
@@ -85,8 +92,16 @@ function animateNode(node){
     var nodes = cy.$('node');
     var edges = cy.$('edge');
 
+    var excluded_selected_nodes = [];
+    for (var i=0; i<nodes.length; i++){
+        var node_tmp = nodes[i];
+        if (node_tmp.data().id !== node.data().id)
+            excluded_selected_nodes.push(node_tmp);
+    }
+
     //first normalizing all nodes and fading all nodes and edges
-    normalizingNodes(nodes);
+    normalizingNodes(excluded_selected_nodes);
+
     fadingNodes(nodes);
     fadingEdges(edges);
 
@@ -105,57 +120,41 @@ function animateNode(node){
         }
     });
 
-    //then animate the chosen node
     node.animate({
-        css: { 'width':250, 'height':50 }
+        css: { 'width':default_node_width+35, 'height':default_node_height+15 }
     }, {
         duration: 300
     });
-    // set font style here for better animation (instead of in animate function).
-    node.css('font-size', 14);
-    node.css('font-weight', 'bolder');
+    
+    node.css({
+        'font-size': default_font_size,
+        'text-max-width': default_text_max_width+15
+    });
+
     if (node.data().name !== 'Hidden item'){
-        node.css('color', '#0000e5');
+        node.css({'color': '#0000e5'});
     }
     node.select();
 }
 
 function displayNodeInfo(node) {
-    var html = "<div class='panel panel-default'>";
-    html += "<div class='panel-heading'>Chosen item</div>";
-    html += "<div class='panel-body>";
-    html += "<ul class='list-group'>";
+
+    html = "<div class='isa-selected-item'><strong>Selected item: </strong>";
     var item_data = node.data();
     html += itemInfo(item_data);
-    html += '</ul>';
-
-    html += '</div></div>';
-
-    html += "<div class='panel panel-default'>";
-    html += "<div class='panel-heading'>Connected items</div>";
-    html += "<div class='panel-body>";
-    html += "<ul class='list-group'>";
-    var connected_nodes = connectedNodes(node);
-    for(var i=0;i<connected_nodes.length;i++){
-        var node_data = connected_nodes[i].data();
-        html += itemInfo(node_data);
-    }
-
-    html += '</ul>';
-    html += '</div></div>';
+    html += '</div>';
 
     var node_info = $('node_info');
     $('node_info').innerHTML = html;
 
-    //can not use Effect.Appear here, it does not activate clientHeight
-    //node_info.style.display = 'block';
-    //alignCenterVertical(node_info, node_info.clientHeight);
+
 }
 
+
 function itemInfo(item_data){
-    var html = '<li class="list-group-item">';
+    var html = '<span>';
     html += item_data.item_info;
-    html += '</li>';
+    html += '</span>';
     return html;
 }
 
@@ -210,28 +209,35 @@ function alignCenterVertical(element, element_height){
 }
 
 function appearingNodes(nodes){
-    nodes.css('opacity', 1);
+    nodes.css({'opacity': 1});
 }
 
 function appearingEdges(edges){
-    edges.css('opacity', 1);
+    edges.css({'opacity': 1});
 }
 
 function fadingNodes(nodes){
-    nodes.css('opacity', 0.3);
+    nodes.css({'opacity': 0.6});
 }
 
 function fadingEdges(edges){
-    edges.css('opacity', 0.2);
+    edges.css({'opacity': 0.5});
 }
 
 function normalizingNodes(nodes){
-    nodes.css('width',default_node_width);
-    nodes.css('height',default_node_height);
-    nodes.css('font-size',default_font_size);
-    nodes.css('font-weight', 'normal');
-    nodes.css('color',default_color);
-    nodes.unselect();
+    for (var i=0; i<nodes.length; i++){
+        var node = nodes[i];
+        node.css({
+            'width': default_node_width,
+            'height': default_node_height,
+            'font-size': default_font_size,
+            'font-weight': 'normal',
+            'color': default_color,
+            'text-max-width': default_text_max_width
+        });
+        node.unselect();
+
+    }
 }
 
 function resizeGraph(){
@@ -242,32 +248,76 @@ function resizeGraph(){
     }
 }
 
-function labelPosition(node){
+function labelPosition(node, label_part, line_index, total_line){
     var label_pos = {};
     var graph_pos = $j('#cy')[0].getBoundingClientRect();
     var node_posX = node.renderedPosition().x + graph_pos.left;
     var node_posY = node.renderedPosition().y + graph_pos.top;
     var font_size = node.renderedCss()['font-size'];
-    var label = node.data().name;
     var ruler = $j('#ruler')[0];
     ruler.style.fontSize = font_size;
     ruler.style.fontWeight = 'bolder';
-    ruler.innerHTML = label;
-    var zoom_level = cy.zoom();
-    var label_width = ruler.offsetWidth + 2*zoom_level;
+    ruler.innerHTML = label_part;    
+    var label_width = ruler.offsetWidth;
     var label_height = ruler.offsetHeight;
     label_pos.minX = node_posX - label_width/2;
     label_pos.maxX = node_posX + label_width/2;
-    label_pos.minY = node_posY - label_height/2;
-    label_pos.maxY = node_posY + label_height/2;
+    label_pos.maxY = node_posY + (line_index - total_line/2)*label_height;
+    label_pos.minY = label_pos.maxY - label_height;
+    
     return label_pos;
 }
 
+function labelLines(node){
+    var label = node.data().name;
+    var font_size = node.renderedCss()['font-size'];
+    var ruler = $j('#ruler')[0];
+    ruler.style.fontSize = font_size;
+    //ruler.style.fontWeight = 'bolder';
+    ruler.innerHTML = label;    
+    var label_width = ruler.offsetWidth;
+    var text_max_width = node.renderedCss()['text-max-width'];
+    var max_width = text_max_width.split('px')[0];
+    var max_width_integer = parseInt(max_width);
+    var lines = [];
+    if (label_width > max_width_integer){
+        var words = label.split(' ');
+        var line = '';
+        for( var i=0; i<words.length; i++){
+            var testLine = line + words[i] + ' ';
+            ruler.innerHTML = testLine;
+            var testWidth = ruler.offsetWidth;
+            if (testWidth > max_width_integer && i > 0) {
+                lines.push(line.trim());
+                line = words[i] + ' ';
+            }
+            else {
+                line = testLine;
+            }
+            //when last word, push line to lines
+            if (i === words.length-1){
+                lines.push(line.trim());
+            }
+        }
+    }else{
+        lines.push(label);
+    }
+    return lines;
+}
+
 function mouseOnLabel(node, mouse_event){
-    var label_pos = labelPosition(node);
-    var mouse_posX = mouse_event.clientX;
-    var mouse_posY = mouse_event.clientY;
-    var mouse_on_label = mouse_posX > label_pos.minX && mouse_posX < label_pos.maxX && mouse_posY > label_pos.minY && mouse_posY < label_pos.maxY;
+    var lines = labelLines(node);
+    var mouse_on_label = false;
+    for (var i=0; i<lines.length; i++){
+    	var label_pos = labelPosition(node, lines[i], i+1, lines.length);
+    	var mouse_posX = mouse_event.clientX;
+    	var mouse_posY = mouse_event.clientY;
+	    mouse_on_label = mouse_posX > label_pos.minX && mouse_posX < label_pos.maxX && mouse_posY > label_pos.minY && mouse_posY < label_pos.maxY;
+        if (mouse_on_label === true){
+	        return mouse_on_label;
+	    }
+    }
+
     return mouse_on_label;
 }
 
@@ -290,5 +340,12 @@ function disableMouseWheel(){
         if (event.match(/wheel/i) !== null || event.match(/scroll/i) !==null){
             binding.target.removeEventListener(event, binding.handler, binding.useCapture);
         }
+    }
+}
+
+function decodeHTMLForElements(elements){
+    for( var i=0; i<elements.length; i++){
+        elements[i].data.name = decodeHTML(elements[i].data.name);
+        elements[i].data.item_info = decodeHTML(elements[i].data.item_info);
     }
 }

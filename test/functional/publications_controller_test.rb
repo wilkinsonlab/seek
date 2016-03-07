@@ -217,6 +217,66 @@ class PublicationsControllerTest < ActionController::TestCase
     assert_equal 0, model.publications.count
   end
 
+  test "associates investigations" do
+    p = Factory(:publication)
+    investigation = Factory(:investigation, :policy => Factory(:all_sysmo_viewable_policy))
+    assert !p.investigations.include?(investigation)
+    assert !investigation.publications.include?(p)
+
+    login_as(p.contributor)
+    #add association
+    put :update, :id => p,:author=>{},:investigation_ids=>["#{investigation.id.to_s}"]
+
+    assert_redirected_to publication_path(p)
+    p.reload
+    investigation.reload
+
+    assert_equal 1, p.investigations.count
+
+    assert p.investigations.include?(investigation)
+    assert investigation.publications.include?(p)
+
+    #remove association
+    put :update, :id => p,:author=>{},:investigation_ids=>[]
+
+    assert_redirected_to publication_path(p)
+    p.reload
+    investigation.reload
+
+    assert_equal 0, p.investigations.count
+    assert_equal 0, investigation.publications.count
+  end
+
+  test "associates studies" do
+    p = Factory(:publication)
+    study = Factory(:study, :policy => Factory(:all_sysmo_viewable_policy))
+    assert !p.studies.include?(study)
+    assert !study.publications.include?(p)
+
+    login_as(p.contributor)
+    #add association
+    put :update, :id => p,:author=>{},:study_ids=>["#{study.id.to_s}"]
+
+    assert_redirected_to publication_path(p)
+    p.reload
+    study.reload
+
+    assert_equal 1, p.studies.count
+
+    assert p.studies.include?(study)
+    assert study.publications.include?(p)
+
+    #remove association
+    put :update, :id => p,:author=>{},:study_ids=>[]
+
+    assert_redirected_to publication_path(p)
+    p.reload
+    study.reload
+
+    assert_equal 0, p.studies.count
+    assert_equal 0, study.publications.count
+  end
+  
   test "do not associate assays unauthorized for edit" do
     p = publications(:taverna_paper_pubmed)
     original_assay = assays(:assay_with_a_publication)
@@ -417,6 +477,32 @@ class PublicationsControllerTest < ActionController::TestCase
       assert_select "a[href=?]", publications_path(:page => 'all')
     end
   end
+
+  test "should avoid XSS in association forms" do
+    project = Factory(:project)
+    c = Factory(:person, group_memberships: [Factory(:group_membership, work_group: Factory(:work_group, project: project))])
+    Factory(:event, title: '<script>alert("xss")</script> &', projects: [project], contributor: c)
+    Factory(:data_file, title: '<script>alert("xss")</script> &', projects: [project], contributor: c)
+    Factory(:model, title: '<script>alert("xss")</script> &', projects: [project], contributor: c)
+    i = Factory(:investigation, title: '<script>alert("xss")</script> &', projects: [project], contributor: c)
+    s = Factory(:study, title: '<script>alert("xss")</script> &', investigation: i, contributor: c)
+    a = Factory(:assay, title: '<script>alert("xss")</script> &', study: s, contributor: c)
+    p = Factory(:publication, projects: [project], contributor: c)
+
+    login_as(p.contributor)
+
+    get :edit, :id => p.id
+
+    assert_response :success
+    assert_not_include response.body, '<script>alert("xss")</script>', 'Unescaped <script> tag detected'
+    # This will be slow!
+
+    # 3 for events 'fancy_multiselect'
+    assert_equal 3, response.body.scan('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &amp;').count
+    # 10 = 2 each for investigations, studies, assays, datafiles, models (using bespoke association forms)
+    assert_equal 10, response.body.scan('\u003Cscript\u003Ealert(\"xss\")\u003C/script\u003E \u0026').count
+  end
+
 
   def mock_crossref options
     url= "http://www.crossref.org/openurl/"

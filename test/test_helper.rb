@@ -11,6 +11,7 @@ MiniTest::Reporters.use! MiniTest::Reporters::DefaultReporter.new
 
 require 'rest_test_cases'
 require 'rdf_test_cases'
+require 'sharing_form_test_helper'
 require 'functional_authorization_tests'
 require 'ruby-prof'
 require 'factory_girl'
@@ -18,6 +19,7 @@ require 'webmock/test_unit'
 require 'action_view/test_case'
 require 'tmpdir'
 require 'authenticated_test_helper'
+require 'mock_helper'
 
 
 module ActionView

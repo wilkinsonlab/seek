@@ -12,7 +12,6 @@ class DataFile < ActiveRecord::Base
   include Seek::Rdf::RdfGeneration
 
   delegate :modification_date,:registration_date,:code,:properties, :to=>:internal_dataset
-
   attr_accessor :parent_name
 
   #searchable must come before acts_as_asset call
@@ -24,9 +23,7 @@ class DataFile < ActiveRecord::Base
 
   include Seek::Dois::DoiGeneration
 
-   scope :default_order, order('title')
-
-  title_trimmer
+  scope :default_order, order('title')
 
   validates_presence_of :title
 
@@ -180,22 +177,6 @@ class DataFile < ActiveRecord::Base
       end
     end
     annotations
-  end
-
-    #factors studied, and related compound text that should be included in search
-  def fs_search_fields
-    flds = studied_factors.collect do |fs|
-      [fs.measured_item.title,
-       fs.substances.collect do |sub|
-         #FIXME: this makes the assumption that the synonym.substance appears like a Compound
-         sub = sub.substance if sub.is_a?(Synonym)
-         [sub.title] |
-             (sub.respond_to?(:synonyms) ? sub.synonyms.collect { |syn| syn.title } : []) |
-             (sub.respond_to?(:mappings) ? sub.mappings.collect { |mapping| ["CHEBI:#{mapping.chebi_id}", mapping.chebi_id, mapping.sabiork_id.to_s, mapping.kegg_id] } : [])
-       end
-      ]
-    end
-    flds.flatten.uniq
   end
 
   def to_presentation

@@ -15,6 +15,11 @@ class OrganismsControllerTest < ActionController::TestCase
   def rest_api_test_object
     @object=Factory(:organism,:bioportal_concept=>Factory(:bioportal_concept))
   end
+
+  test "new organism route" do
+    assert_routing '/organisms/new', { controller: "organisms", action: "new" }
+    assert_equal '/organisms/new', new_organism_path.to_s
+  end
   
   test "admin can get edit" do
     login_as(:quentin)
@@ -55,6 +60,27 @@ class OrganismsControllerTest < ActionController::TestCase
     get :new
     assert_response :success
     assert_nil flash[:error]
+    assert_select 'h1',/add a new organism/i
+  end
+
+  test "project administrator can get new" do
+    login_as(Factory(:project_administrator))
+    get :new
+    assert_response :success
+    assert_nil flash[:error]
+    assert_select 'h1',/add a new organism/i
+  end
+
+  test "programme administrator can get new" do
+    pa = Factory(:programme_administrator_not_in_project)
+    login_as(pa)
+
+    #check not already in a project
+    assert_empty pa.projects
+    get :new
+    assert_response :success
+    assert_nil flash[:error]
+    assert_select 'h1',/add a new organism/i
   end
   
   test "non admin cannot get new" do
@@ -62,6 +88,39 @@ class OrganismsControllerTest < ActionController::TestCase
     get :new
     assert_response :redirect
     assert_not_nil flash[:error]
+  end
+
+  test "admin has create organism menu option" do
+    login_as(Factory(:admin))
+    get :show, :id=>Factory(:organism)
+    assert_response :success
+    assert_select "li#create-menu" do
+      assert_select "ul.dropdown-menu" do
+        assert_select "li a[href=?]",new_organism_path,:text=>"Organism"
+      end
+    end
+  end
+
+  test "project administrator has create organism menu option" do
+    login_as(Factory(:project_administrator))
+    get :show, :id=>Factory(:organism)
+    assert_response :success
+    assert_select "li#create-menu" do
+      assert_select "ul.dropdown-menu" do
+        assert_select "li a[href=?]",new_organism_path,:text=>"Organism"
+      end
+    end
+  end
+
+  test "non admin doesn not have create organism menu option" do
+    login_as(Factory(:user))
+    get :show, :id=>Factory(:organism)
+    assert_response :success
+    assert_select "li#create-menu" do
+      assert_select "ul.dropdown-menu" do
+        assert_select "li a[href=?]",new_organism_path,:text=>"Organism",:count=>0
+      end
+    end
   end
   
   test "admin can create new organism" do
@@ -72,6 +131,26 @@ class OrganismsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:organism)
     assert_redirected_to organism_path(assigns(:organism))
   end
+
+  test "project administrator can create new organism" do
+    login_as(Factory(:project_administrator))
+    assert_difference("Organism.count") do
+      post :create, :organism=>{:title=>"An organism"}
+    end
+    assert_not_nil assigns(:organism)
+    assert_redirected_to organism_path(assigns(:organism))
+  end
+
+  test "programme administrator can create new organism" do
+    login_as(Factory(:programme_administrator_not_in_project))
+    assert_difference("Organism.count") do
+      post :create, :organism=>{:title=>"An organism"}
+    end
+    assert_not_nil assigns(:organism)
+    assert_redirected_to organism_path(assigns(:organism))
+  end
+
+
   
   test "non admin cannot create new organism" do
     login_as(:aaron)
@@ -104,6 +183,17 @@ class OrganismsControllerTest < ActionController::TestCase
         
     assert_select "#content a",:text=>/Delete Organism/,:count=>1
   end
+
+  test "project administrator sees create buttons" do
+    login_as(Factory(:project_administrator))
+    y=organisms(:human)
+    get :show,:id=>y
+    assert_response :success
+
+    assert_select "#content a[href=?]",new_organism_path,:count=>1
+    assert_select "#content a",:text=>/Add Organism/,:count=>1
+
+  end
   
   test "non admin does not see edit, create and delete buttons" do
     login_as(:aaron)
@@ -121,6 +211,15 @@ class OrganismsControllerTest < ActionController::TestCase
   
   test "delete as admin" do
     login_as(:quentin)
+    o=organisms(:human)
+    assert_difference('Organism.count', -1) do
+      delete :destroy, :id => o
+    end
+    assert_redirected_to organisms_path
+  end
+
+  test "delete as project administrator" do
+    login_as(Factory(:project_administrator))
     o=organisms(:human)
     assert_difference('Organism.count', -1) do
       delete :destroy, :id => o
@@ -145,7 +244,7 @@ class OrganismsControllerTest < ActionController::TestCase
   end
   
   test "cannot delete associated organism" do
-    login_as(:aaron)
+    login_as(:quentin)
     o=organisms(:yeast)
     assert_no_difference('Organism.count') do
       delete :destroy, :id => o

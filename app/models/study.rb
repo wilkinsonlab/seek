@@ -9,6 +9,12 @@ class Study < ActiveRecord::Base
     investigation.try(:projects) || []
   end
 
+  searchable(:auto_index => false) do
+    text :experimentalists
+    text :person_responsible do
+      person_responsible.try(:name)
+    end
+  end if Seek::Config.solr_enabled
   acts_as_isa
 
   attr_accessor :new_link_from_assay
@@ -22,22 +28,16 @@ class Study < ActiveRecord::Base
            :as => :subject,
            :dependent => :destroy
 
+
   validates :investigation, :presence => true
 
-  searchable(:auto_index => false) do
-    text :experimentalists
-    text :person_responsible do
-      person_responsible.try(:name)
-    end
-  end if Seek::Config.solr_enabled
-
-  ["data_file","sop","model","publication"].each do |type|
+  ["data_file","sop","model"].each do |type|
     eval <<-END_EVAL
       def #{type}_versions
         assays.collect{|a| a.send(:#{type}_versions)}.flatten.uniq
       end
 
-      def #{type}s
+      def related_#{type}s
         assays.collect{|a| a.send(:#{type}s)}.flatten.uniq
       end
     END_EVAL
@@ -50,7 +50,7 @@ class Study < ActiveRecord::Base
   end
 
   def assets
-    data_files + sops + models + publications
+    related_data_files + related_sops + related_models + related_publications
   end
 
   def project_ids
@@ -71,5 +71,8 @@ class Study < ActiveRecord::Base
   def publications
     self.relationships.select {|a| a.other_object_type == "Publication"}.collect { |a| a.other_object }
   end
+
+
+
 
 end

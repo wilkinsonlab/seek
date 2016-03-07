@@ -56,10 +56,6 @@ module ImagesHelper
     (@@icon_dictionary ||= Seek::ImageFileDictionary.instance).image_filename_for_key(key)
   end
 
-  def remove_member_icon_filename
-    icon_filename_for_key("destroy")
-  end
-
   def image key,options={}
     image_tag(icon_filename_for_key(key),options)
   end
@@ -133,11 +129,15 @@ module ImagesHelper
   end
   
   def expand_image(margin_left="0.3em")
-    image_tag icon_filename_for_key("expand"), :style => "margin-left: #{margin_left}; vertical-align: middle;", :alt => 'Expand', :title=>tooltip_title_attrib("Expand for more details")
+    toggle_image(margin_left,"expand")
   end
   
   def collapse_image(margin_left="0.3em")
-    image_tag icon_filename_for_key("collapse"), :style => "margin-left: #{margin_left}; vertical-align: middle;", :alt => 'Collapse', :title=>tooltip_title_attrib("Collapse the details")
+    toggle_image(margin_left,"collapse")
+  end
+
+  def toggle_image(margin_left,key)
+    image_tag icon_filename_for_key(key), :style => "margin-left: #{margin_left}; vertical-align: middle;", :alt => key, :title=>tooltip_title_attrib("#{key.capitalize} for more details")
   end
 
   def expand_plus_image(size="18x18")

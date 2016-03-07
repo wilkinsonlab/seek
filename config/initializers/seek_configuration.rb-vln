@@ -5,8 +5,6 @@ require 'seek/seek_render_override'
 
 SEEK::Application.configure do
   #Main settings
-  #NOTE: Seek::Config.public_seek_enabled is still needed? it is always true in SEEK via resetting true even it is false here
-  Seek::Config.default :public_seek_enabled,true
 
   Seek::Config.default :sycamore_enabled,true
   Seek::Config.default :events_enabled,true
@@ -17,7 +15,9 @@ SEEK::Application.configure do
   Seek::Config.default :support_email_address, ''
   Seek::Config.default :solr_enabled,false
   Seek::Config.default :jws_enabled, true
-  Seek::Config.default :jws_online_root,"https://jws.sysmo-db.org/"
+  Seek::Config.default :jws_online_root,"https://jws2.sysmo-db.org/"
+  Seek::Config.default :internal_help_enabled, true
+  Seek::Config.default :external_help_url,"http://seek4science.github.io/seek/help"
   Seek::Config.default :sabiork_ws_base_url, "http://sabiork.h-its.org/sabioRestWebServices/"
   Seek::Config.default :exception_notification_enabled,false
   Seek::Config.default :exception_notification_recipients,""
@@ -91,6 +91,16 @@ SEEK::Application.configure do
   Seek::Config.default :copyright_addendum_enabled,false
   Seek::Config.default :copyright_addendum_content,'Additions copyright ...'
 
+  #Imprint
+  Settings.defaults[:imprint_enabled]= true
+  imprint_example = ''
+  File.open(Rails.root.join('config/default_data/imprint_example')) do |infile|
+    while (line = infile.gets)
+      imprint_example << line
+    end
+  end
+  Seek::Config.default :imprint_description, imprint_example
+
   Seek::Config.default :is_virtualliver, true
 
 # Pagination
@@ -130,9 +140,19 @@ SEEK::Application.configure do
 
   Seek::Config.default :seek_video_link, "http://www.youtube.com/user/elinawetschHITS?feature=mhee#p/u"
 
+  # Set default permissions
+  Seek::Config.default :default_associated_projects_access_type, Policy::ACCESSIBLE
+  Seek::Config.default :default_consortium_access_type, Policy::VISIBLE
+  Seek::Config.default :default_all_visitors_access_type, Policy::ACCESSIBLE
+
   Seek::Config.fixed :css_prepended,''
   Seek::Config.fixed :css_appended,''
   Seek::Config.fixed :main_layout,'application'
 
+  Seek::Config.default :zenodo_publishing_enabled, false
+  Seek::Config.default :zenodo_api_url, 'https://zenodo.org/api'
+  Seek::Config.default :zenodo_oauth_url, 'https://zenodo.org/oauth'
+
+  Seek::Config.default :orcid_required, false
 end
 

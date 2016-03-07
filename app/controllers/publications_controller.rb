@@ -1,10 +1,11 @@
 #encoding: utf-8
 class PublicationsController < ApplicationController
   
-  include IndexPager
-  include DotGenerator
+  include Seek::IndexPager
+  include Seek::DotGenerator
   include Seek::AssetsCommon
   include Seek::BioExtension
+  include Seek::PreviewHandling
 
   before_filter :publications_enabled?
 
@@ -102,6 +103,8 @@ class PublicationsController < ApplicationController
 
     update_annotations(params[:tag_list], @publication)
 
+    investigation_ids = params[:investigation_ids] || []
+    study_ids = params[:study_ids] || []
     assay_ids = params[:assay_ids] || []
     data_file_ids = params[:data_file_ids] || []
     model_ids = params[:model_ids] || []
@@ -111,6 +114,8 @@ class PublicationsController < ApplicationController
       if valid && @publication.update_attributes(publication_params)
 
         # Update association
+        create_or_update_associations investigation_ids, "Investigation", "view"
+        create_or_update_associations study_ids, "Study", "view"
         create_or_update_associations assay_ids, "Assay", "edit"
 
         data_file_ids = data_file_ids.collect{|data_file_id| data_file_id.split(',').first}
@@ -160,23 +165,21 @@ class PublicationsController < ApplicationController
     end
     pubmed_id,doi = preprocess_doi_or_pubmed pubmed_id,doi
     result = get_data(@publication, pubmed_id, doi)
-    if !result.error.nil?
+    if !@error.nil?
       if protocol == "pubmed"
-        @error_text = result.error
+        @error_text = @error
       elsif protocol == "doi"
         if key.match(/[0-9]+(\.)[0-9]+.*/).nil?
-          @error_text = "There was a problem with #{result.doi} - please ensure the DOI is entered in the correct format, e.g. <i>10.1093/nar/gkl320</i>"
+          @error_text = "Couldn't retrieve DOI: #{doi} - please ensure the DOI is entered in the correct format, e.g. 10.1093/nar/gkl320"
         else
-          @error_text = "There was a problem with #{result.doi} - #{result.error} ."
+          @error_text = "Couldn't retrieve DOI: #{doi} - #{@error}"
         end
       end
-
       render :update do |page|
         page[:publication_preview_container].hide
         page[:publication_error].show
         page[:publication_error].replace_html(render(:partial => "publications/publication_error", :locals => {:publication => @publication, :error_text => @error_text}, :status => 500 ))
       end
-
     else
       render :update do |page|
         page[:publication_error].hide
@@ -191,7 +194,7 @@ class PublicationsController < ApplicationController
   def associate_authors
     publication = @publication
     projects = publication.projects
-    projects = current_user.person.projects if projects.empty?
+    projects = current_person.projects if projects.empty?
     association = {}
     publication.publication_authors.each do |author|
       unless author.person
@@ -266,26 +269,35 @@ class PublicationsController < ApplicationController
 
   def fetch_pubmed_or_doi_result pubmed_id,doi
     result = nil
+    @error = nil
     if pubmed_id
       begin
         result = Bio::MEDLINE.new(Bio::PubMed.efetch(pubmed_id).first).reference
+        @error = result.error
       rescue => exception
         result ||= Bio::Reference.new({})
-        result.error = "There was an problem contacting the pubmed query service. Please try again later"
+        @error = "There was an problem contacting the PubMed query service. Please try again later"
         if Seek::Config.exception_notification_enabled
           ExceptionNotifier.notify_exception(exception,:data=>{:message=>"Problem accessing ncbi using pubmed id #{pubmed_id}"})
         end
       end
     elsif doi
-      query = DoiQuery.new(Seek::Config.crossref_api_email)
-      result = query.fetch(doi)
+      begin
+        query = DoiQuery.new(Seek::Config.crossref_api_email)
+        result = query.fetch(doi)
+      rescue RuntimeError => exception
+        @error = "There was an problem contacting the DOI query service. Please try again later"
+        if Seek::Config.exception_notification_enabled
+          ExceptionNotifier.notify_exception(exception,:data=>{:message=>"Problem accessing crossref using DOI #{doi}"})
+        end
+      end
     end
     result
   end
 
   def get_data(publication, pubmed_id, doi=nil)
     result = fetch_pubmed_or_doi_result(pubmed_id,doi)
-    publication.extract_metadata(result) unless result.error
+    publication.extract_metadata(result) unless @error
     result
   end
         
@@ -304,9 +316,7 @@ class PublicationsController < ApplicationController
     asset_ids.each do |id|
       asset = asset_type.constantize.find_by_id(id)
       if asset && asset.send("can_#{required_action}?")
-        unless Relationship.where(:subject_type => asset_type, :subject_id => asset.id, :predicate => Relationship::RELATED_TO_PUBLICATION, :other_object_type => "Publication", :other_object_id => @publication.id).first
-          Relationship.create(:subject_type => asset_type, :subject_id => asset.id, :predicate => Relationship::RELATED_TO_PUBLICATION, :other_object_type => "Publication", :other_object_id => @publication.id)
-        end
+        @publication.associate(asset)
       end
     end
     #Destroy asset relationship that aren't needed

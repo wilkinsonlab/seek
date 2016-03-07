@@ -1,21 +1,23 @@
-<%= javascript_include_tag "people" %>
 <%= f.error_messages %>
 
-<%= render :partial => 'contact_details_form', :locals => {:f => f} %>
+<%= render :partial=>"name_details_form", :locals=>{:f=>f} %>
 
 <div class="form-group">
-  <label>Description about myself</label>
+  <label>Description</label>
   <%= f.text_area :description, :class=>"description form-control", :rows => 5 -%>
 </div>
 
+<%= render :partial => 'contact_details_form', :locals => {:f => f} %>
+
+
 <% if person -%>
-    <%= folding_panel("Knowledge and expertise") do %>
+    <%= panel("Knowledge and expertise") do %>
         <%= render :partial=>"people/discipline_select",:locals=>{:f=>f} %>
         <br/>
         <%= render :partial => "select_expertise", :locals => {:person => (person ? person : Person.new) } -%>
         <%= render :partial => "select_tools", :locals => {:person => (person ? person : Person.new) } -%>
     <% end %>
-    <%= render :partial=>"project_roles",:locals=>{:editable=>true} -%>
+    <%= render :partial=>"project_positions",:locals=>{:editable=>true} -%>
 <% end %>
 
 <% if person && person.notifiee_info -%>
@@ -31,4 +33,4 @@
 <% end -%>
 
 <%= f.submit((person ? "Update" : "Create"), :disable_with=>(person ? "Updating..." : "Creating..."), :class => 'btn btn-primary') -%>
- or <%= link_to 'Cancel', (person ? person_path(person.id) : people_path), :class => 'btn btn-default' -%>
+ or <%= cancel_button(person ? person_path(person.id) : people_path) %>

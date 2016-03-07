@@ -1,7 +1,6 @@
 /* ...
 *= require yui-grids
 *= require bootstrap_include
-*= require my_exp
 *= require gadgets
 *= require acts_as_taggable_stylesheet
 *= require styles
@@ -15,7 +14,6 @@
 *= require tabnav
 *= require top_menu
 *= require dynamic_menu
-*= require batch_upload
 *= require easytabs
 *= require taverna_player/application
 *= require data_tables
@@ -40,4 +38,6 @@
 *= require bootstrap-typeahead-rails
 *= require calendar_date_select/default
 *= require openbis_demo
+*= require organisms
+*= require tweaks
 */

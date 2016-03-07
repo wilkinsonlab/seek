@@ -3,10 +3,10 @@ require 'simple-spreadsheet-extractor'
 
 class DataFilesController < ApplicationController
 
-  include IndexPager
+  include Seek::IndexPager
   include SysMODB::SpreadsheetExtractor
   include MimeTypesHelper
-  include DotGenerator
+  include Seek::DotGenerator
 
   include Seek::AssetsCommon
 
@@ -42,7 +42,7 @@ class DataFilesController < ApplicationController
           @data_file.destroy
         end
 
-        ActivityLog.create :action=>"create",:culprit=>User.current_user,:activity_loggable=>@presentation,:controller_name=>controller_name.downcase
+        ActivityLog.create :action=>"create",:culprit=>current_user,:activity_loggable=>@presentation,:controller_name=>controller_name.downcase
         flash[:notice]="#{t('data_file')} '#{@presentation.title}' is successfully converted to #{t('presentation')}"
         format.html { redirect_to presentation_path(@presentation) }
       else
@@ -94,21 +94,6 @@ class DataFilesController < ApplicationController
       redirect_to @data_file
     end
   end
-  
-  def new
-    @data_file = DataFile.new
-    @data_file.parent_name = params[:parent_name]
-    @data_file.is_with_sample= params[:is_with_sample]
-    @page_title = params[:page_title]
-    respond_to do |format|
-      if User.logged_in_and_member?
-        format.html # new.html.erb
-      else
-        flash[:error] = "You are not authorized to upload new Data files. Only members of known projects, institutions or work groups are allowed to create new content."
-        format.html { redirect_to data_files_path }
-      end
-    end
-  end
 
   def upload_for_tool
 
@@ -119,10 +104,10 @@ class DataFilesController < ApplicationController
       @data_file.policy = Policy.new_for_upload_tool(@data_file, params[:recipient_id])
 
       if @data_file.save
-        @data_file.creators = [current_user.person]
+        @data_file.creators = [current_person]
         create_content_blobs
         #send email to the file uploader and receiver
-        Mailer.file_uploaded(current_user,Person.find(params[:recipient_id]),@data_file,base_host).deliver
+        Mailer.file_uploaded(current_user,Person.find(params[:recipient_id]),@data_file).deliver
 
         flash.now[:notice] ="#{t('data_file')} was successfully uploaded and saved." if flash.now[:notice].nil?
         render :text => flash.now[:notice]
@@ -226,26 +211,7 @@ class DataFilesController < ApplicationController
   end
 
 
-  def show
-    # store timestamp of the previous last usage
-    @last_used_before_now = @data_file.last_used_at
 
-    @data_file.just_used
-
-    #Rails.logger.warn "template in data_files_controller/show : #{params[:parsing_template]}"
-
-    respond_to do |format|
-      format.html #{render :locals => {:template => params[:parsing_template]}}# show.html.erb
-      format.xml
-      format.rdf { render :template=>'rdf/show'}
-      format.json
-    end
-  end
-  
-  def edit
-    
-  end
-  
   def update
     # remove protected columns (including a "link" to content blob - actual data cannot be updated!)
     data_file_params=filter_protected_update_params(params[:data_file])

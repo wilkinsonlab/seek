@@ -20,29 +20,29 @@
         <%= render :partial => 'projects/show_project_relationship', :locals => {:resource => @study}%>
 
         <p>
-          <label>Contributor:</label>
+          <label>Person responsible:</label>
           <% if @study.person_responsible.try :can_view? -%>
               <%= link_to @study.person_responsible.name,@study.person_responsible %>
           <% else -%>
               <span class="none_text">Not available</span>
           <% end -%>
         </p>
+
         <p>
           <b>Experimentalists:</b>
           <%= text_or_not_specified(@study.experimentalists) %>
         </p>
 
       </div>
-      <div class="col-md-6">
-        <%= render :partial => "assets/usage_info",:locals => { :resource => @study , :versioned_resource=> @study } -%>
-      </div>
     </div>
+    <%= render :partial=>"general/isa_graph", :locals => {:root_item => @study.investigation, :current_item => @study, :deep => false} %>
   </div>
+
   <div class="col-md-3 col-sm-4">
-    <%= render :partial=>"assets/resource_main_content_right",:locals => { :resource => @study, :creators => [@study.contributing_user.try(:person)] } %>
+    <%= render :partial=>"assets/resource_main_content_right",:locals => { :resource => @study, :creators => (@study.creators | [@study.contributing_user.try(:person)]).compact.uniq } %>
+
   </div>
 </div>
 
-<%= render :partial=>"general/isa_graph", :locals => {:root_item => @study.investigation, :current_item => @study, :deep => false} %>
 
 <%= render :partial=>"general/items_related_to", :object => @study %>

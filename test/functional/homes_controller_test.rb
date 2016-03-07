@@ -6,6 +6,13 @@ class HomesControllerTest < ActionController::TestCase
   include AuthenticatedTestHelper
   include HomesHelper
 
+  test 'funding page' do
+    #check accessible outside
+    get :funding
+    assert_response :success
+    assert_select 'h1',/seek funding/i
+  end
+
   test "test should be accessible to seek even if not logged in" do
     get :index
     assert_response :success
@@ -150,7 +157,7 @@ class HomesControllerTest < ActionController::TestCase
     assert_response :success
 
     assert_select "div#home_description .panel-body", :text=>/Blah blah blah/, :count=>1
-    assert_select "div#home_description .panel-body a[href=?]", "http://www.google.com", :count=>1
+    assert_select "div#home_description .panel-body", :text=>/http:\/\/www.google.com/, :count=>1
 
   end
 
@@ -364,7 +371,8 @@ class HomesControllerTest < ActionController::TestCase
     end
   end
 
-  test "should display feed announcements in gadget" do
+  test "should display feed announcements when logged in" do
+    login_as(Factory(:person))
     headline=Factory :headline_announcement, :show_in_feed=>false, :title=>"a headline announcement"
     feed=Factory :feed_announcement, :show_in_feed=>true,:title=>"a feed announcement"
     get :index
@@ -377,6 +385,18 @@ class HomesControllerTest < ActionController::TestCase
           end
         end
       end
+    end
+  end
+
+  test "documentation only shown when enabled" do
+    with_config_value :documentation_enabled,true do
+      get :index
+      assert_select "li.dropdown span",:text=>"Help",:count=>1
+    end
+
+    with_config_value :documentation_enabled,false do
+      get :index
+      assert_select "li.dropdown span",:text=>"Help",:count=>0
     end
   end
 

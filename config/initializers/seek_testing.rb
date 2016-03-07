@@ -13,7 +13,9 @@ SEEK::Application.configure do
 
       Settings.defaults[:jws_enabled] = true
       Settings.defaults[:events_enabled] = true
-      Settings.defaults[:jws_online_root] = "http://jws2.sysmo-db.org"
+      Settings.defaults[:jws_online_root] = "http://jws.sysmo-db.org"
+      Settings.defaults[:internal_help_enabled] = false
+      Settings.defaults[:external_help_url] = "http://seek4science.github.io/seek/help"
 
       Settings.defaults[:email_enabled] = true
       Settings.defaults[:solr_enabled] = false
@@ -37,6 +39,7 @@ SEEK::Application.configure do
       Settings.defaults[:factors_studied_enabled] = true
       Settings.defaults[:experimental_conditions_enabled] = true
       Settings.defaults[:programmes_enabled] = true
+      Settings.defaults[:programme_user_creation_enabled] = true
       Settings.defaults[:project_hierarchy_enabled] = true
       Settings.defaults[:tabs_lazy_load_enabled] = false
 
@@ -85,7 +88,18 @@ SEEK::Application.configure do
       Settings.defaults[:solr_enabled] = true
       Sunspot.session = SunspotMatchers::SunspotSessionSpy.new(Sunspot.session)
 
+      Settings.defaults[:imprint_enabled]= false
+      Settings.defaults[:imprint_description]= 'Here is imprint example'
 
+      Settings.defaults[:zenodo_api_url] = "https://sandbox.zenodo.org/api"
+      Settings.defaults[:zenodo_oauth_url] = "https://sandbox.zenodo.org/oauth"
+
+      Settings.defaults[:cache_remote_files] = true
+      Settings.defaults[:max_cachable_size] = 2000
+      Settings.defaults[:hard_max_cachable_size] = 5000
+
+      Settings.defaults[:orcid_required] = false
+      Settings.defaults[:site_base_host] = "http://localhost:3000"
     end
   end
 end

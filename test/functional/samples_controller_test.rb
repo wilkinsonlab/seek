@@ -32,7 +32,7 @@ class SamplesControllerTest < ActionController::TestCase
   end
 
   test "show xml validates with schema" do
-    s = Factory(:sample,:contributor => Factory(:user,:person => Factory(:person,:roles_mask=> Person.mask_for_admin)),
+    s = Factory(:sample,:contributor => Factory(:user,:person => Factory(:admin)),
                 :title => "test sample",
                 :policy => policies(:policy_for_viewable_data_file))
     get :show, :id => s, :format =>"xml"
@@ -60,8 +60,8 @@ class SamplesControllerTest < ActionController::TestCase
 
     get :show, :id=>s
     assert_response :success
-    assert_select "div.tab-pane" do
-      assert_select "h3", :text=>/#{I18n.t('biosamples.sample_parent_term')}s/ ,:count => 1
+    assert_select "ul.nav-pills" do
+      assert_select "a", :text=>/#{I18n.t('biosamples.sample_parent_term')}s/ ,:count => 1
     end
     with_config_value :tabs_lazy_load_enabled, true do
       get :resource_in_tab, {:resource_ids => [s.specimen.id].join(","), :resource_type => "Specimen", :view_type => "view_some", :scale_title => "all", :actions_partial_disable => 'false'}
@@ -121,18 +121,19 @@ class SamplesControllerTest < ActionController::TestCase
       end
     end
     s = assigns(:sample)
+    s.reload
     assert_redirected_to sample_path(s)
     assert_equal "test",s.title
     assert_not_nil s.specimen
     assert_equal "Donor number",s.specimen.title
-    assert_equal [sop],s.specimen.sops.collect{|sop| sop.parent}
+    assert_equal [sop],s.specimen.sops
     assert s.specimen.creators.include?(creator)
     assert_equal 1,s.specimen.creators.count
     assert_equal "jesus jones",s.specimen.other_creators
     assert_equal 2,s.projects.count
     assert s.projects.include?(proj1)
     assert s.projects.include?(proj2)
-    assert_equal s.projects,s.specimen.projects
+    assert_equal s.projects.sort_by(&:id),s.specimen.projects.sort_by(&:id)
   end
 
   test "should create sample and specimen with default strain if missing" do
@@ -468,10 +469,10 @@ test "should show organism and strain information of a sample if there is organi
     assert_redirected_to sample_path(s)
     assert_nil flash[:error]
     assert_equal "test", s.title
-    assert_equal 1, s.sop_masters.length
-    assert_equal sop, s.sop_masters.first
     assert_equal 1, s.sops.length
-    assert_equal sop_version_2, s.sops.first
+    assert_equal sop, s.sops.first
+    assert_equal 1, s.sop_versions.length
+    assert_equal sop_version_2, s.sop_versions.first
   end
 
   test "filter by specimen using nested routes" do
@@ -501,6 +502,24 @@ test "should show organism and strain information of a sample if there is organi
     refute_equal sample1.projects,sample2.projects
 
     get :index,project_id:sample1.projects.first.id
+    assert_response :success
+    assert_select "div.list_item_title" do
+      assert_select "a[href=?]",sample_path(sample1),:text=>sample1.title
+      assert_select "a[href=?]",sample_path(sample2),:text=>sample2.title,:count=>0
+    end
+  end
+
+  test "filter by sop using nested routes" do
+    assert_routing "sops/4/samples",{controller:"samples",action:"index",sop_id:"4"}
+    sample1 = Factory(:sample,:policy=>Factory(:public_policy),:sops=>[Factory(:sop,:policy=>Factory(:public_policy))])
+    sample2 = Factory(:sample,:policy=>Factory(:public_policy),:sops=>[Factory(:sop,:policy=>Factory(:public_policy))])
+
+    refute_empty sample1.sops
+    refute_empty sample2.sops
+    assert_equal sample1.sops.count,sample2.sops.count
+    refute_equal sample1.sops,sample2.sops
+
+    get :index,sop_id:sample1.sops.first.id
     assert_response :success
     assert_select "div.list_item_title" do
       assert_select "a[href=?]",sample_path(sample1),:text=>sample1.title

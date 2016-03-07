@@ -14,8 +14,9 @@
 %>
 
 <div class="row">
-  <div class="hidden-xs clearfix">
-    <div class="col-md-9 col-sm-8 isa_graph box_about_actor curved with_smaller_shadow">
+
+  <div class="hidden-xs">
+    <div class="col-md-12 col-sm-12 isa_graph box_about_actor curved with_smaller_shadow">
 
       <% if cytoscape_elements.size > reduced_elements.size %>
           <%= link_to_function ("Full graph "+image("expand")).html_safe,
@@ -30,10 +31,15 @@
                                :class => 'graph_toggle'
           -%>
       <% end %>
-      <div id="cy" style="margin-top: 3em;"></div>
-    </div>
 
-    <div class="col-md-3 col-sm-4" id="node_info"></div>
+      <div class="row">
+        <div class="alert alert-info" role="alert" id="node_info">
+
+          </div>
+
+      <div id="cy"></div>
+      </div>
+    </div>
 
     <span id="ruler" style="visibility: hidden"></span>
   </div>
@@ -45,13 +51,28 @@
     var reduced_elements = <%= reduced_elements.to_json.html_safe %>;
     var current_element_id = '<%= controller_name.singularize.camelize %>' + '_' + '<%= params[:id] %>';
 
-    if (elements.error === 'error'){
+    if (elements.error === 'error') {
         isa_graph.innerHTML = "<div class='none_text'>Currently unable to display the graph for this item</div>";
-        isa_graph.style['text-align'] = 'center';}
-    else if (!isCanvasSupportBrowser() || !isIEVersionSupported(5)){
+        isa_graph.style['text-align'] = 'center';
+    }
+    else if (!isCanvasSupportBrowser() || !isIEVersionSupported(5)) {
         isa_graph.innerHTML = "<div class='none_text'>Unable to display the graph for this browser version. Please upgrade your browser.</div>";
         isa_graph.style['text-align'] = 'center';
-    }else{
+    } else {
+        decodeHTMLForElements(elements);
+        decodeHTMLForElements(reduced_elements);
+
         drawGraph(reduced_elements, current_element_id);
+
+        //this is to overcome a z-index problem that prevents the bootstrap menu working ontop of the isa-graph.
+        //it forces a generated div, which is created with z-index:1000, to have a lower z-index.
+        $j('div#cy > div').css('z-index','0');
+
     }
 </script>
+
+<style>
+  div#cy div {
+      z-index:0;
+  }
+</style>

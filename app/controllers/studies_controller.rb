@@ -1,8 +1,8 @@
 class StudiesController < ApplicationController
 
-  include DotGenerator
-  include IndexPager
-  include Seek::DestroyHandling
+  include Seek::DotGenerator
+  include Seek::IndexPager
+  include Seek::AssetsCommon
   include Seek::AssetsCommon
 
   before_filter :find_assets, :only=>[:index]

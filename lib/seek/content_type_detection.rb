@@ -9,7 +9,7 @@ module Seek
 
     MAX_EXTRACTABLE_SPREADSHEET_SIZE = (Seek::Config.max_extractable_spreadsheet_size || 10).to_i * 1024 * 1024
     MAX_SIMULATABLE_SIZE = 5 * 1024 * 1024
-    PDF_CONVERTABLE_FORMAT = %w(doc docx ppt pptx odt odp rtf txt xls xlsx)
+    PDF_CONVERTABLE_FORMAT = %w(doc docx ppt pptx odt odp rtf txt xls xlsx csv tsv)
     PDF_VIEWABLE_FORMAT = PDF_CONVERTABLE_FORMAT - %w(xls xlsx)
     IMAGE_VIEWABLE_FORMAT = %w(gif jpeg png jpg bmp svg)
 
@@ -18,11 +18,11 @@ module Seek
     end
 
     def is_extractable_spreadsheet?(blob = self)
-      within_size_limit(blob) && is_excel?(blob)
+      within_size_limit(blob) && is_excel?(blob) && blob.file_exists?
     end
 
     def is_in_simulatable_size_limit?(blob = self)
-      !blob.filesize.nil? && blob.filesize < MAX_SIMULATABLE_SIZE
+      !blob.file_size.nil? && blob.file_size < MAX_SIMULATABLE_SIZE
     end
 
     def is_xlsx?(blob = self)
@@ -78,7 +78,7 @@ module Seek
     end
 
     def is_content_viewable?(blob = self)
-      blob.asset.is_downloadable_asset? && blob.is_viewable_format?
+      blob.asset.is_downloadable_asset? && blob.is_viewable_format? && blob.file_exists?
     end
 
     def update_content_mime_type
@@ -92,7 +92,7 @@ module Seek
     private
 
     def within_size_limit(blob)
-      !blob.filesize.nil? && blob.filesize < MAX_EXTRACTABLE_SPREADSHEET_SIZE
+      !blob.file_size.nil? && blob.file_size < MAX_EXTRACTABLE_SPREADSHEET_SIZE
     end
 
     def check_content(blob, str, max_length = 1500)

@@ -1,30 +1,4 @@
-h2 {
-    background-image: url("<%= asset_path('header-bg.png') %>");
-    background-position: top;
-    background-repeat: repeat-x;
-    background-color: #EEEEEE;
-    padding: 0.5em 0.6em;
-    border: 1px solid #CCCCCC;
-    font-size: 100%;
-}
-h3 {
-    background-color: transparent;
-    font-size: 108%;
-    font-weight: bold;
-    border: none;
-    padding: 0 0 0.3em 0;
-    margin: 1em 0 0.8em 0;
-    border-bottom: 1px dotted #999999;
-}
-h4 {
-    background-color: transparent;
-    font-size: 108%;
-    font-weight: bold;
-    border: none;
-    padding: 0.3em 0;
-    margin-top: 0;
-    margin-bottom: 0.6em;
-}
+kbd {} /* Leave this here, because for some reason this file isn't loaded properly if the first style definition begins with a # */
 
 #custom-doc {
     margin: auto;
@@ -55,8 +29,6 @@ min-width:
     border: none;
     color: #fff;
 }
-
-
 
 #errorExplanation p {
     color: #333;
@@ -772,6 +744,10 @@ div.list_item_whole_width{
     width: 100%;
 }
 
+div.list_item_avatar img {
+    margin-top: 0.3em;
+}
+
 ul.related_asset_list {
     padding-left: 5px;
     margin-bottom: 0;
@@ -802,25 +778,10 @@ ul.horiz_list_items li {
     display: inline;
 }
 
-div.error_div {
-    background-color:#F5F5F5;
-    border:2px solid #CC0000;
-    margin:0.5em 0;
-    padding:0.5em;
-    text-align:left;
-    width:95%;
-}
-
 div.error_div h2 {
-    text-align: left;
+    font-size: inherit;
     font-weight: bold;
-    padding: 5px 5px 5px 15px;
-    font-size: 93%;
     margin: 0;
-    background-image: none;
-    background-color: #c00;
-    border: none;
-    color: #fff;
 }
 
 .assay_item_sup_info {
@@ -1084,13 +1045,6 @@ ul#switch_upload_buttons > li {
 li#upload_options {
     padding-left: 1em;
     display: inline-block;
-}
-
-
-li.author_avatar {
-    float:left;
-    margin-right: 0.5em;
-    text-align:center;
 }
 
 div.email_configuration{
@@ -1365,20 +1319,19 @@ li.fileinfo_container div.fileinfo {
 }
 
 
-div#guide_box {
-    min-height: 4em;
-}
-
-ul.usage_times_list {
+#usage_timestamps {
     color: #555;
     font-size: smaller;
     text-align: center;
-    margin-bottom: 0.6em;
-    line-height: 1.5;
+}
+#usage_timestamps p {
+    margin: 0em;
+    padding: 0em;
 }
 
-.usage_count {
+#usage_count {
     margin-bottom: 0.5em;
+    text-align: center;
 }
 
 .big_download_button {
@@ -1387,17 +1340,6 @@ ul.usage_times_list {
     padding-top: 0.5em;
     height: 5em;
     text-align: center;
-}
-
-.box_infotext {
-    margin: 0;
-    padding: 0.5em 0.8em;
-    line-height: 1.4;
-    border: 1px solid #bbb;
-    background-color: #fffeda;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
 }
 
 .box_normal {
@@ -1597,8 +1539,6 @@ ul#my_profile_menu > li.my_profile_menu_break {
 }
 
 span.published {
-    font-size: 18px;
-    font-weight: bold;
     color: green;
 }
 
@@ -1693,19 +1633,6 @@ div#version_box .compare {
     vertical-align: text-top;
 }
 
-ul#pending_files li {
-    vertical-align: middle;
-}
-
-ul#pending_files span {
-    padding-right:0.25em;
-    vertical-align: middle;
-}
-
-ul#pending_files a {
-    padding-left:0.75em;
-}
-
 #no-index-items-text {
     font-style:italic;
     text-align: center;
@@ -1713,4 +1640,92 @@ ul#pending_files a {
     padding:1em;
 }
 
+#pending-files {
+    list-style: none;
+    padding: 10px 0 0 0;
+    margin: 0;
+}
+
+#pending-files li {
+    vertical-align: middle;
+}
+
+#pending-files span {
+    vertical-align: middle;
+}
+
+#pending-files a {
+    padding-left: 0.75em;
+}
+
+.isa-tree {
+    margin-bottom: 0.5em;
+    margin-left: 1em;
+    padding-left: 1em;
+    border-left: 4px solid #eee;
+}
+
+img.zenodo-publish {
+    display: block;
+    border-radius: 5px;
+    box-shadow: 1px 1px 4px 0 #ccc;
+    margin: 0 auto 6px;
+}
+
+.creator-checkbox {
+    width: 14em;
+    display: inline-block;
+}
+
+.creator-checkbox input:not(:checked) + span {
+    text-decoration: line-through;
+    color: #999;
+}
+
+#login-panel, #forgot-password-panel {
+    width: 45em;
+    margin: auto;
+}
+
+dl.icon-key {
+    margin-bottom: 0;
+}
+
+dl.icon-key > dt {
+    width: 40px;
+}
+
+dl.icon-key > dd {
+    margin-left: 60px;
+}
+
+.avatar-gallery {
+    overflow: auto;
+}
+
+.avatar-gallery div.avatar {
+    float: left;
+    padding: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 2px #999;
+    margin: 10px;
+    width: 200px;
+    text-align: center;
+}
+
+select.project-positions-adder {
+    width: auto;
+}
+
+#user-menu-button {
+  height: 50px;
+}
+
+.related-items .nav {
+    margin-bottom: 0.5em;
+}
+
+div.renderer {
+    text-align:center;
+}
 

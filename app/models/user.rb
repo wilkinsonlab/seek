@@ -24,40 +24,48 @@ class User < ActiveRecord::Base
   has_many :taverna_player_runs, :class_name => 'TavernaPlayer::Run', :as => :contributor
   has_many :sweeps, :as => :contributor
 
+  has_many :oauth_sessions, :dependent => :destroy
+
   #restful_authentication plugin generated code ...
   # Virtual attribute for the unencrypted password
   attr_accessor :password, :password_confirmation
   
-  validates_presence_of     :login,                      :unless => :using_openid?
-  validates_presence_of     :password,                   :if => :password_required?, :unless => :using_openid?
-  validates_presence_of     :password_confirmation,      :if => :password_required?, :unless => :using_openid?
-  validates_length_of       :password, :within => 4..40, :if => :password_required?, :unless => :using_openid?
-  validates_confirmation_of :password,                   :if => :password_required?, :unless => :using_openid?
-  validates_length_of       :login,    :within => 3..40, :unless => :using_openid?
+  validates     :login,presence: true
+  validates     :password,presence: true, :if => :password_required?
+  validates     :password_confirmation,presence: true, :if => :password_required?
+  validates_length_of       :password, :within => 4..40, :if => :password_required?
+  validates_confirmation_of :password,                   :if => :password_required?
+  validates_length_of       :login,    :within => 3..40
   validates_uniqueness_of   :login, :case_sensitive => false
-  validates_uniqueness_of   :openid, :case_sensitive => false, :allow_nil => true
+
+
+  validates :email,format: {with: RFC822::EMAIL}, if: "email"
+  validates :email, presence: true, if: :check_email_present?
+  validate :email_available?, if: :check_email_present?
   
   before_save :encrypt_password
   before_create :make_activation_code
 
+  #virtual attribute to hold email used to determine whether this user links to an existing
+  attr_accessor :email
+  attr_writer :check_email_present
+
   # prevents a user from submitting a crafted form that bypasses activation
   # anything else you want your user to change should be added here.
-  attr_accessible :login, :email, :password, :password_confirmation, :openid
+  attr_accessible :login, :password, :password_confirmation, :email
 
-    
   has_many :favourite_groups, :dependent => :destroy
   
   scope :not_activated,where('activation_code IS NOT NULL')
 
   acts_as_uniquely_identifiable
 
-  after_commit :queue_update_auth_table, :on=>:create
-
-  def queue_update_auth_table
-    AuthLookupUpdateJob.new.add_items_to_queue self
-  end
-
   cattr_accessor :current_user
+
+  delegate :is_admin?, to: :person, allow_nil: true
+  delegate :is_project_administrator?, to: :person, allow_nil: true
+  delegate :is_admin_or_project_administrator?, to: :person, allow_nil: true
+  delegate :is_programme_administrator?, to: :person, allow_nil: true
 
   # related_#{type} are resources that user created
   RELATED_RESOURCE_TYPES = [:data_files,:models,:sops,:events,:presentations,:publications]
@@ -65,6 +73,10 @@ class User < ActiveRecord::Base
     define_method "related_#{type}" do
       person.send "related_#{type}"
     end
+  end
+
+  def check_email_present?
+    !!@check_email_present
   end
 
   def user
@@ -75,12 +87,25 @@ class User < ActiveRecord::Base
     self.logged_in_and_registered? && self.current_user.person.is_admin?
   end
 
-  def self.project_manager_logged_in?
-    self.logged_in_and_registered? && self.current_user.person.is_project_manager_of_any_project?
+  def self.project_administrator_logged_in?
+    self.logged_in_and_registered? && self.current_user.person.is_project_administrator_of_any_project?
   end
 
-  def self.asset_manager_logged_in?
-     self.logged_in_and_registered? && self.current_user.person.is_asset_manager?
+  def self.programme_administrator_logged_in?
+    self.logged_in_and_registered? && self.current_user.person.is_programme_administrator_of_any_programme?
+  end
+
+  #programme administrator logged in, but only of activated programmes
+  def self.activated_programme_administrator_logged_in?
+    self.programme_administrator_logged_in? && self.current_user.person.administered_programmes.activated.any?
+  end
+
+  def self.admin_or_project_administrator_logged_in?
+    project_administrator_logged_in? || admin_logged_in?
+  end
+
+  def self.asset_housekeeper_logged_in?
+     self.logged_in_and_registered? && self.current_user.person.is_asset_housekeeper?
   end
   #a person can be logged in but not fully registered during
   #the registration process whilst selecting or creating a profile
@@ -148,7 +173,7 @@ class User < ActiveRecord::Base
 
   def remember_me_until(time)
     self.remember_token_expires_at = time
-    self.remember_token            = encrypt("#{email}--#{remember_token_expires_at}")
+    self.remember_token            = encrypt("#{login}--#{remember_token_expires_at}")
     save(:validate=>false)
   end
 
@@ -190,26 +215,6 @@ class User < ActiveRecord::Base
 
   def display_name
     person.name
-  end
-  
-  def using_openid?
-    !openid.nil?
-  end
-
-  def is_admin?
-    !person.nil? && person.is_admin?
-  end
-
-  def is_project_manager? project
-    !person.nil? && person.is_project_manager?(project)
-  end
-  
-  def can_edit_projects?
-    !person.nil? && person.can_edit_projects?
-  end
-  
-  def can_edit_institutions?
-    !person.nil? && person.can_edit_institutions?
   end
 
   def can_manage_types?
@@ -261,7 +266,12 @@ class User < ActiveRecord::Base
 
   def reset_password
     self.reset_password_code_until = 1.day.from_now
-    self.reset_password_code =  Digest::SHA1.hexdigest( "#{user.email}#{Time.now.to_s.split(//).sort_by {rand}.join}" )
+    self.reset_password_code =  Digest::SHA1.hexdigest( "#{user.login}#{Time.now.to_s.split(//).sort_by {rand}.join}" )
+  end
+
+  #indicates whether the user has completed the registration process, and is associated with a profile and link has been saved
+  def registration_complete?
+    person.present? && person.user.present?
   end
 
   def self.without_profile
@@ -282,6 +292,14 @@ class User < ActiveRecord::Base
     
   def make_activation_code
     self.activation_code = Digest::SHA1.hexdigest( Time.now.to_s.split(//).sort_by {rand}.join )
+  end
+
+  def email_available?
+    found = Person.where(:email=>email).select{|p| p.user}.any?
+    if found
+      errors.add(:email,"The email has already been registered")
+      return false
+    end
   end
     
 end

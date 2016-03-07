@@ -161,7 +161,6 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference 'User.count' do
       create_user(:login => nil)
       assert assigns(:user).errors.get(:login)
-      assert_response :redirect
     end
   end
   
@@ -169,7 +168,6 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference 'User.count' do
       create_user(:password => nil)
       assert assigns(:user).errors.get(:password)
-      assert_response :redirect
     end
   end
   
@@ -177,16 +175,8 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference 'User.count' do
       create_user(:password_confirmation => nil)
       assert assigns(:user).errors.get(:password_confirmation)
-      assert_response :redirect
     end
   end
-  
-  def test_should_not_require_email_on_signup
-    assert_difference 'User.count' do
-      create_user(:email => nil)
-      assert_response :redirect
-    end
-  end  
   
   def test_should_activate_user
     user = users(:aaron)
@@ -227,23 +217,13 @@ class UsersControllerTest < ActionController::TestCase
   end  
   
   def test_associated_with_person
-    login_as :part_registered
-    u=users(:part_registered)
-    p=people(:not_registered)
-    post :update, :id=>u.id,:user=>{:id=>u.id,:person_id=>p.id}
+    u=Factory(:brand_new_user)
+    login_as u
+    assert_nil u.person
+    p=Factory(:brand_new_person)
+    post :update, :id=>u.id,:user=>{:id=>u.id,:person_id=>p.id, :email=>p.email}
     assert_nil flash[:error]
     assert_equal p,User.find(u.id).person
-  end
-  
-  def test_assocated_with_pal
-    login_as :part_registered
-    u=users(:part_registered)
-    
-    p=Factory(:pal)
-    post :update, :id=>u.id,:user=>{:id=>u.id,:person_id=>p.id}
-    assert_nil flash[:error]
-    u=User.find(u.id)
-    assert_equal p.id,u.person.id
   end
   
   def test_update_password
@@ -274,17 +254,6 @@ class UsersControllerTest < ActionController::TestCase
     get :edit, :id => users(:aaron), :user => {}
     assert_redirected_to :root
     assert_not_nil flash[:error]
-  end
-
-  test 'should remove the guide_box after deleting it and remember for the next time' do
-    x = users(:aaron)
-    login_as(x)
-    assert x.show_guide_box
-
-    put :hide_guide_box, :id => User.current_user
-    assert_select 'div#guide_box', :count => 0
-    x.reload
-    assert !x.show_guide_box
   end
 
   test "reset password with valid code" do
@@ -329,7 +298,7 @@ class UsersControllerTest < ActionController::TestCase
 
   protected
   def create_user(options = {})
-    post :create, { :login => 'quire', :email => 'quire@example.com',
+    post :create, :user=>{ :login => 'quire', :email => 'quire@example.com',
       :password => 'quire', :password_confirmation => 'quire' }.merge(options),:person=>{:first_name=>"fred"}
   end
   

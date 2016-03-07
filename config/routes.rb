@@ -1,4 +1,6 @@
 SEEK::Application.routes.draw do
+  mount MagicLamp::Genie, :at => (SEEK::Application.config.relative_url_root || "/") + 'magic_lamp'  if defined?(MagicLamp)
+  mount Teaspoon::Engine, :at => (SEEK::Application.config.relative_url_root || "/") + "teaspoon" if defined?(Teaspoon)
 
   resources :openbis_samples do
     resources :data_files,:only=>[:index]
@@ -36,6 +38,7 @@ SEEK::Application.routes.draw do
       get :get_stats
       get :registration_form
       get :edit_tag
+      get :imprint_setting
       post :update_home_settings
       post :restart_server
       post :restart_delayed_job
@@ -49,6 +52,7 @@ SEEK::Application.routes.draw do
       post :update_pagination
       post :delete_tag
       post :edit_tag
+      post :update_imprint_setting
     end
   end
 
@@ -56,10 +60,13 @@ SEEK::Application.routes.draw do
     member do
       get :index
       get :feedback
+      get :funding
       post :send_feedback
+      get :imprint
     end
   end
 
+  match 'funding' => 'homes#funding', :as => :match
   match 'index.html' => 'homes#index', :as => :match
   match 'index' => 'homes#index', :as => :match
   match 'my_biovel' => 'homes#my_biovel', :as => :my_biovel
@@ -125,6 +132,7 @@ SEEK::Application.routes.draw do
       put :set_openid
       post :resend_activation_email
     end
+    resources :oauth_sessions, only: [:index, :destroy]
   end
 
   resource :session do
@@ -143,7 +151,8 @@ SEEK::Application.routes.draw do
   resources :people do
     collection do
       get :typeahead
-      get :select
+      get :register
+      get :is_this_you
       get :get_work_group
       post :userless_project_selected_ajax
       post :items_for_result
@@ -184,6 +193,7 @@ SEEK::Application.routes.draw do
       get :asset_report
       get :admin
       get :admin_members
+      get :admin_member_roles
       post :update_members
     end
     resources :people,:institutions,:assays,:studies,:investigations,:models,:sops,:data_files,:presentations,
@@ -227,17 +237,32 @@ SEEK::Application.routes.draw do
 
   resources :investigations do
     collection do
+      get :preview
       post :items_for_result
       post :resource_in_tab
     end
     resources :people,:projects,:assays,:studies,:models,:sops,:data_files,:publications,:only=>[:index]
+    resources :snapshots, :only => [:show, :new, :create] do
+      member do
+        post :mint_doi
+        get :download
+        get :export, to: :export_preview
+        post :export, to: :export_submit
+      end
+    end
     member do
       get :new_object_based_on_existing_one
+      post :check_related_items
+      post :check_gatekeeper_required
+      post :publish_related_items
+      post :publish
+      get :published
     end
   end
 
   resources :studies do
     collection do
+      get :preview
       post :investigation_selected_ajax
       post :items_for_result
       post :resource_in_tab
@@ -300,7 +325,6 @@ SEEK::Application.routes.draw do
       post :resource_in_tab
     end
     member do
-      post :check_related_items
       get :matching_models
       get :data
       post :check_gatekeeper_required
@@ -308,13 +332,14 @@ SEEK::Application.routes.draw do
       get :explore
       get :download
       get :published
+      post :check_related_items
       post :publish_related_items
       post :publish
       post :request_resource
       post :convert_to_presentation
       post :update_annotations_ajax
       post :new_version
-      #MERGENOTE - this is a destroy, and should be the destory method, not post since we are not updating or creating something.
+      #MERGENOTE - this is a destroy, and should be the destroy method, not post since we are not updating or creating something.
       post :destroy_version
       get :mint_doi_confirm
       get :minted_doi
@@ -449,7 +474,7 @@ SEEK::Application.routes.draw do
         get :download
       end
     end
-    resources :people,:projects,:investigations,:assays,:studies,:publications,:events,:only=>[:index]
+    resources :people,:projects,:investigations,:assays,:samples,:studies,:publications,:events,:only=>[:index]
   end
 
   resources :content_blobs, :except => [:show, :index, :update, :create, :destroy] do
@@ -465,9 +490,14 @@ SEEK::Application.routes.draw do
     end
     collection do
       post :items_for_result
+      get :awaiting_activation
     end
     member do
       get :initiate_spawn_project
+      get :activation_review
+      put :accept_activation
+      put :reject_activation
+      get :reject_activation_confirmation
       post :spawn_project
     end
     resources :people,:projects, :institutions
@@ -561,7 +591,6 @@ SEEK::Application.routes.draw do
     member do
       get :visualise
     end
-
   end
 
   resources :tissue_and_cell_types
@@ -653,12 +682,11 @@ SEEK::Application.routes.draw do
   match '/signup' => 'users#new', :as => :signup
 
   match '/logout' => 'sessions#destroy', :as => :logout
+  match '/login' => 'sessions#new', :as => :login
   match '/activate/:activation_code' => 'users#activate', :activation_code => nil, :as => :activate
   match '/forgot_password' => 'users#forgot_password', :as => :forgot_password
   match '/policies/request_settings' => 'policies#send_policy_data', :as => :request_policy_settings
   match '/fail'=>'fail#index',:as=>:fail,:via=>:get
-
-  match '/contact' => 'contact#index', :as => :contact, :via => :get
 
   #feedback
   match '/home/feedback' => 'homes#feedback', :as=> :feedback, :via=>:get
@@ -670,6 +698,8 @@ SEEK::Application.routes.draw do
   match "/404" => "errors#error_404"
   match "/422" => "errors#error_422"
   match "/500" => "errors#error_500"
+
+  match "/zenodo_oauth_callback" => "zenodo/oauth2/callbacks#callback"
 
   # This is a legacy wild controller route that's not recommended for RESTful applications.
   # Note: This route will make all actions in every controller accessible via GET requests.

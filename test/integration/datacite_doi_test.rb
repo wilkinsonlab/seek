@@ -230,7 +230,7 @@ class DataciteDoiTest < ActionController::IntegrationTest
       assert latest_version.save
       assert asset.is_doi_minted?(latest_version.version)
 
-      post "/#{type.pluralize}/#{asset.id}/new_version", :data_file=>{},:content_blob=>{:data=>{}}, :revision_comment=>"This is a new revision"
+      post "/#{type.pluralize}/#{asset.id}/new_version", :data_file=>{},:content_blobs => [{:data=>{}}], :revision_comment=>"This is a new revision"
 
       assert_redirected_to :root
       assert_not_nil flash[:error]
@@ -245,11 +245,7 @@ class DataciteDoiTest < ActionController::IntegrationTest
       assert latest_version.save
       assert asset.is_doi_minted?(latest_version.version)
 
-      if type == 'workflow'
-        get "/#{type.pluralize}/#{asset.id}/edit"
-      else
-        get "/#{type.pluralize}/#{asset.id}"
-      end
+      get "/#{type.pluralize}/#{asset.id}"
 
       assert_select "span[class='disabled_icon disabled']", :text => /Delete/
     end

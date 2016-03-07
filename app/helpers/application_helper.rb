@@ -291,7 +291,7 @@ module ApplicationHelper
   def page_title controller_name, action_name
     name=PAGE_TITLES[controller_name]
     name ||=""
-    name += " (Development)" if Rails.env=="development"
+    name += " (Development)" if Rails.env.development?
     return "The #{Seek::Config.application_name} "+name
   end
 
@@ -357,17 +357,7 @@ module ApplicationHelper
     locals[:contributor_id] = resource.contributing_user.try(:id)
     render :partial => 'assets/preview_permission_link', :locals => locals
   end
-  #Return whether or not to hide contact details from this user
-  #Current decided by Seek::Config.hide_details_enabled in config.rb
-  #Defaults to false
-  def hide_contact_details?
-    #hide for non-login and non-project-member
-    if !logged_in? or !current_user.person.member?
-      return true
-    else
-      Seek::Config.hide_details_enabled
-    end
-  end
+
 
   # Finn's truncate method. Doesn't split up words, tries to get as close to length as possible
   def truncate_without_splitting_words(text, length=50)
@@ -585,6 +575,12 @@ module ApplicationHelper
     end
 
     "<span class='visibility #{css_class}'>#{text}</span>".html_safe
+  end
+
+  def cancel_button path,html_options={}
+    html_options[:class]||=''
+    html_options[:class] << ' btn btn-default'
+    link_to 'Cancel',path,html_options
   end
 
   private  

@@ -1,5 +1,16 @@
 module PeopleHelper
 
+  def can_create_profiles?
+    Person.can_create?
+  end
+
+  def contact_details_warning_message
+    msg = "This information is only visible to other people whom you share a #{t('project')}"
+    msg << " or #{t('programme')}" if Seek::Config.programmes_enabled
+    msg << "."
+    msg
+  end
+
   def person_list_item_extra_details? person
     !(person.projects.empty? and person.institutions.empty?)  
   end
@@ -13,7 +24,7 @@ module PeopleHelper
 
   def seek_role_icons person
     icons = ''
-    person.role_names.each do |role|
+    person.roles.each do |role|
       icons << image("#{role}",:alt=>"#{role}",:title=>tooltip_title_attrib(role.humanize), :style=>"vertical-align: middle")
     end
     icons.html_safe
@@ -40,17 +51,35 @@ module PeopleHelper
     return text.html_safe
   end
 
-  def project_role_list person
-    unless person.project_roles.empty?
+  def project_position_list person
+    unless person.project_positions.empty?
       text=""
-      person.project_roles.each do |r|
-        text += link_to(h(r.title),people_path(:project_role_id=>r.id))
-        text += ", " unless person.project_roles.last==r
+      person.project_positions.each do |r|
+        text += link_to(h(r.title),people_path(:project_position_id=>r.id))
+        text += ", " unless person.project_positions.last==r
       end
     else
       text="<span class='none_text'>None specified</span>"
     end
     return text.html_safe
   end
-  
+
+  def admin_defined_project_roles_hash
+    roles = Seek::Roles::ProjectRelatedRoles.role_names.map do |role|
+      [role,t(role)]
+    end
+    roles = Hash[roles]
+
+    roles.delete("pal") unless admin_logged_in?
+    roles
+  end
+
+  #Return whether or not to hide contact details from this user
+  #Current decided by Seek::Config.hide_details_enabled or
+  # is hidden if the current person doesn't share the same programme as the person being viewed
+  def hide_contact_details? displayed_person_or_project
+    return true if Seek::Config.hide_details_enabled || !logged_in?
+    !current_user.person.shares_project_or_programme?(displayed_person_or_project)
+  end
+
 end

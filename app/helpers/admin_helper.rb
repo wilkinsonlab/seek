@@ -25,8 +25,10 @@ module AdminHelper
   def delayed_job_status
     status = ""
     begin
-      pids = [0,1].collect do |n|
-        Daemons::PidFile.new("#{Rails.root}/tmp/pids","delayed_job.#{n.to_s}")
+      directory = "#{Rails.root}/tmp/pids"
+      pids = Daemons::PidFile.find_files(directory, "delayed_job").collect do |path|
+        file = path.sub("#{directory}/",'').sub('.pid','')
+        Daemons::PidFile.new(directory, file)
       end
       pids.each do |pid|
         if pid.running?
@@ -65,8 +67,9 @@ module AdminHelper
   end
 
   def admin_textarea_setting(name, value, title, description = nil, options = {})
+    rows = options[:rows].nil? ? 5 : options[:rows]
     admin_setting_block(title, description) do
-      text_area_tag(name, value, options.merge!(:rows => 5, :class => 'form-control'))
+      text_area_tag(name, value, options.merge!(:rows => rows, :class => 'form-control'))
     end
   end
 
@@ -88,6 +91,27 @@ module AdminHelper
         check_box_tag(name, value, checked, options) + title.html_safe
       end +
           (description ? content_tag(:p, description.html_safe, :class => 'help-block') : ''.html_safe)
+    end
+  end
+
+  def admin_dropdown_setting(name, option_tags, title, description = nil, options = {})
+    admin_setting_block(title, description) do
+      #   select_tag "people", "<option>David</option>".html_safe
+      #   # => <select id="people" name="people"><option>David</option></select>
+      select_tag(name, option_tags, options)
+    end
+  end
+
+  def git_link_tag
+    if File.exists?(File.join(Rails.root,".git"))
+      begin
+        version = `git rev-parse HEAD`
+        branch =  `git rev-parse --abbrev-ref HEAD`
+        link = link_to(version[0...7],"https://github.com/seek4science/seek/commit/#{version}",:target => "_blank", title:version).html_safe
+        "Git revision: #{link} (branch:#{branch})".html_safe
+
+      rescue
+      end
     end
   end
 

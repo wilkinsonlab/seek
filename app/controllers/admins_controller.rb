@@ -38,13 +38,15 @@ class AdminsController < ApplicationController
   end
 
   def update_features_enabled
-    Seek::Config.public_seek_enabled = string_to_boolean(params[:public_seek_enabled] || true)
     Seek::Config.events_enabled = string_to_boolean params[:events_enabled]
     Seek::Config.jerm_enabled = string_to_boolean params[:jerm_enabled]
     Seek::Config.email_enabled = string_to_boolean params[:email_enabled]
     Seek::Config.pdf_conversion_enabled = string_to_boolean params[:pdf_conversion_enabled]
     Seek::Config.delete_asset_version_enabled = string_to_boolean params[:delete_asset_version_enabled]
     Seek::Config.forum_enabled = string_to_boolean params[:forum_enabled]
+    Seek::Config.show_announcements = string_to_boolean params[:show_announcements]
+    Seek::Config.programmes_enabled = string_to_boolean params[:programmes_enabled]
+    Seek::Config.programme_user_creation_enabled = string_to_boolean params[:programme_user_creation_enabled]
 
     Seek::Config.set_smtp_settings 'address', params[:address]
     Seek::Config.set_smtp_settings 'domain', params[:domain]
@@ -58,6 +60,9 @@ class AdminsController < ApplicationController
     Seek::Config.solr_enabled= string_to_boolean params[:solr_enabled]
     Seek::Config.jws_enabled= string_to_boolean params[:jws_enabled]
     Seek::Config.jws_online_root= params[:jws_online_root]
+
+    Seek::Config.internal_help_enabled= string_to_boolean params[:internal_help_enabled]
+    Seek::Config.external_help_url= params[:external_help_url]
 
     Seek::Config.exception_notification_recipients = params[:exception_notification_recipients]
     Seek::Config.exception_notification_enabled = string_to_boolean params[:exception_notification_enabled]
@@ -78,6 +83,12 @@ class AdminsController < ApplicationController
     Seek::Config.datacite_url = params[:datacite_url]
     Seek::Config.doi_prefix = params[:doi_prefix]
     Seek::Config.doi_suffix = params[:doi_suffix]
+
+    Seek::Config.zenodo_publishing_enabled = string_to_boolean params[:zenodo_publishing_enabled]
+    Seek::Config.zenodo_api_url = params[:zenodo_api_url]
+    Seek::Config.zenodo_oauth_url = params[:zenodo_oauth_url]
+    Seek::Config.zenodo_client_id = params[:zenodo_client_id].try(:strip)
+    Seek::Config.zenodo_client_secret = params[:zenodo_client_secret].try(:strip)
 
     time_lock_doi_for = params[:time_lock_doi_for]
     time_lock_is_integer = only_integer time_lock_doi_for, 'time lock doi for'
@@ -117,6 +128,12 @@ class AdminsController < ApplicationController
 
     validation_flag = is_project_entries_integer && is_community_entries_integer
     update_redirect_to validation_flag, 'home_settings'
+  end
+
+  def update_imprint_setting
+    Seek::Config.imprint_enabled = string_to_boolean params[:imprint_enabled]
+    Seek::Config.imprint_description = params[:imprint_description]
+    update_redirect_to true, 'imprint_setting'
   end
 
   def rebrand
@@ -172,12 +189,12 @@ class AdminsController < ApplicationController
     if Seek::Config.tag_threshold.to_s != params[:tag_threshold] || Seek::Config.max_visible_tags.to_s != params[:max_visible_tags]
       expire_annotation_fragments
     end
-    Seek::Config.site_base_host = params[:site_base_host] unless params[:site_base_host].nil?
+    Seek::Config.site_base_host = params[:site_base_host].chomp('/') unless params[:site_base_host].nil?
     # check valid email
     pubmed_email = params[:pubmed_api_email]
-    pubmed_email_valid = check_valid_email(pubmed_email, 'pubmed api email')
+    pubmed_email_valid = check_valid_email(pubmed_email, 'pubmed API email address')
     crossref_email = params[:crossref_api_email]
-    crossref_email_valid = check_valid_email(crossref_email, 'crossref api email')
+    crossref_email_valid = check_valid_email(crossref_email, 'crossref API email address')
     Seek::Config.pubmed_api_email = pubmed_email if pubmed_email == '' || pubmed_email_valid
     Seek::Config.crossref_api_email = crossref_email if crossref_email == '' || crossref_email_valid
 
@@ -191,6 +208,15 @@ class AdminsController < ApplicationController
     Seek::Config.recaptcha_enabled = string_to_boolean params[:recaptcha_enabled]
     Seek::Config.recaptcha_private_key = params[:recaptcha_private_key]
     Seek::Config.recaptcha_public_key = params[:recaptcha_public_key]
+    Seek::Config.default_associated_projects_access_type = params[:default_associated_projects_access_type]
+    Seek::Config.default_consortium_access_type = params[:default_consortium_access_type]
+    Seek::Config.default_all_visitors_access_type = params[:default_all_visitors_access_type]
+
+    Seek::Config.cache_remote_files = string_to_boolean params[:cache_remote_files]
+    Seek::Config.max_cachable_size = params[:max_cachable_size]
+    Seek::Config.hard_max_cachable_size = params[:hard_max_cachable_size]
+
+    Seek::Config.orcid_required = string_to_boolean params[:orcid_required]
     update_flag = (pubmed_email == '' || pubmed_email_valid) && (crossref_email == '' || (crossref_email_valid)) && (only_integer tag_threshold, 'tag threshold') && (only_positive_integer max_visible_tags, 'maximum visible tags')
     update_redirect_to update_flag, 'others'
   end
@@ -203,7 +229,7 @@ class AdminsController < ApplicationController
 
   def restart_delayed_job
     error = nil
-    if Rails.env != 'test'
+    if !Rails.env.test?
       begin
         Seek::Workers.restart
         wait_for_delayed_job_to_start
@@ -346,8 +372,8 @@ class AdminsController < ApplicationController
       when 'invalid_users_profiles'
         partial = 'invalid_user_stats_list'
         invalid_users = {}
-        pal_role = ProjectRole.pal_role
-        invalid_users[:pal_mismatch] = Person.all.select { |p| p.is_pal_of_any_project? != p.project_roles.include?(pal_role) }
+        pal_position = ProjectPosition.pal_position
+        invalid_users[:pal_mismatch] = Person.all.select { |p| p.is_pal_of_any_project? != p.project_positions.include?(pal_position) }
         invalid_users[:duplicates] = Person.duplicates
         invalid_users[:no_person] = User.without_profile
         collection = invalid_users
@@ -457,11 +483,11 @@ class AdminsController < ApplicationController
   end
 
   def check_valid_email(email_address, field)
-    if email_address =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/
-      return true
+    if email_address.blank? || email_address =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/
+      true
     else
-      flash[:error] = "Please input the correct #{field}"
-      return false
+      flash[:error] = "Please input a valid #{field}"
+      false
     end
   end
 
@@ -487,9 +513,9 @@ class AdminsController < ApplicationController
 
   def string_to_boolean(string)
     if string == '1'
-      return true
+      true
     else
-      return false
+      false
     end
   end
 
@@ -504,7 +530,7 @@ class AdminsController < ApplicationController
   end
 
   def execute_command(command)
-    return nil if Rails.env == 'test'
+    return nil if Rails.env.test?
     begin
       cl = Cocaine::CommandLine.new(command)
       cl.run

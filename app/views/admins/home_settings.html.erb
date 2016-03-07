@@ -1,4 +1,4 @@
-<h1>Homepage setting</h1>
+<h1>Homepage Settings</h1>
 
 <%= form_tag :action=>"update_home_settings" do -%>
     <%= admin_checkbox_setting(:project_news_enabled, 1, Seek::Config.project_news_enabled,
@@ -31,5 +31,5 @@
                                "Home page description", "Sets the description text on the front page") %>
 
     <%= submit_tag "Update", :disable_with=>"Updating...", :class => 'btn btn-primary' -%> or
-    <%= link_to 'Cancel', admin_path, :class => 'btn btn-default'-%>
+    <%= cancel_button admin_path -%>
 <% end %>
