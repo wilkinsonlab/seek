@@ -33,6 +33,7 @@ module Seek
         @code=json["code"]
         @perm_id=json["permId"]
         @properties=json["properties"]
+        @properties.delete_if {|key, value| key == "@type" }
         @registrator=json["registerator"]
         @registration_date=Time.at(json["registrationDate"].last.to_i/1000).to_datetime
         @modification_date=Time.at(json["modificationDate"].last.to_i/1000).to_datetime

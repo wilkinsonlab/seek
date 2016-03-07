@@ -25,12 +25,6 @@ module Seek
         dataset_type["code"]
       end
 
-      def dataset_files
-        #dataset_file_instance = Seek::Openbis::DatasetFile.new()
-        #dataset_file_instance.query_datastore_server_by_perm_id(perm_id)
-        #dataset_file_instance.files
-      end
-
       def dataset_file
         Seek::Openbis::DatasetFile.new(perm_id)
       end
