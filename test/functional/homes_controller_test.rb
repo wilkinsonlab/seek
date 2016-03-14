@@ -171,7 +171,9 @@ class HomesControllerTest < ActionController::TestCase
     assert_response :success
 
     assert_select "div.panel-heading", :text=>/Community News/, :count=>1
-    assert_select "div.panel-heading", :text=>"#{Seek::Config.application_name} News", :count=>1
+
+    #FAIRDOM news is currently hard-coded and should only ever be on the fairdomhub branch
+    assert_select "div.panel-heading", :text=>"FAIRDOM News", :count=>1
 
     #turn off
     Seek::Config.project_news_enabled=false
