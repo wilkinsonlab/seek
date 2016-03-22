@@ -1,6 +1,6 @@
 class OpenbisSamplesController < ApplicationController
 
-  include IndexPager
+  include Seek::IndexPager
   include Seek::AssetsCommon
 
   include Seek::BreadCrumbs
