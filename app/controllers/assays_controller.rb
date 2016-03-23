@@ -76,6 +76,9 @@ class AssaysController < ApplicationController
     sample_ids = params["samples"].try(:keys) || []
     dataset_ids = params["datasets"].try(:keys) || []
 
+    p = @assay.openbis_project
+    Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_as_endpoint, p.openbis_dss_endpoint)
+
     datafiles = dataset_ids.collect do |id|
       begin
         ds = Seek::Openbis::Dataset.new(id)

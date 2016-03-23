@@ -59,15 +59,28 @@ class DataFile < ActiveRecord::Base
 
   def self.load_from_openbis_dataset(dataset)
     df = DataFile.new
-    #need to copy the dummy file as it gets deleted after being added
-    src="#{Rails.root}/demo-data/sample_A1.txt"
-    tmp="/tmp/#{UUID.generate}"
-    FileUtils.copy(src,tmp)
-    io=File.open(tmp)
+
+    dataset_file = dataset.dataset_file
+    files = dataset_file.files
+    files_to_download = []
+    files.each do |file|
+      if !file.is_directory
+        files_to_download << file
+      end
+    end
+
+    #TODO take the first file for now, will need to zip it later if more than one file
+    file = files_to_download.first
+    dest = Seek::Config.temporary_filestore_path + '/' + "#{UUID.generate}"
+    Seek::Openbis::DatasetFile.new().download_by_perm_id('file', file.dataset_id, file.path, dest)
+
+    io=File.open(dest)
     df.content_blob=ContentBlob.new(
-        :tmp_io_object=>io,
-        :original_filename=>"sample_A1.txt"
+        :tmp_io_object => io,
+        :original_filename => file.name,
+        :file_size => file.size
     )
+
     df.update_from_openbis_dataset(dataset)
     df
   end

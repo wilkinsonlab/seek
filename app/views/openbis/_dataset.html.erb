@@ -29,7 +29,7 @@
 
   <td>
     <% dataset.dataset_file.files.each do |file| %>
-        <% if file.size > 0 %>
+        <% if !file.is_directory %>
           <%= file.name %>
           <%= number_to_human_size(file.size) %>
           <% download_url = download_openbis_file_assay_path(@assay, :dataset_perm_id => file.dataset_id, :file_name => file.name, :file_path => file.path) %>
