@@ -389,4 +389,16 @@ namespace :seek_dev do
     end
   end
 
+  desc "synchronize openbis"
+  task :synchronize_openbis => :environment do
+    p = Project.first
+    Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_as_endpoint, p.openbis_dss_endpoint)
+    data_files = DataFile.where('perm_id IS NOT NULL')
+    data_files.each do |df|
+      disable_authorization_checks { df.openbis_refresh }
+    end
+    OpenbisSample.all.each do |os|
+      disable_authorization_checks { os.openbis_refresh }
+    end
+  end
 end
