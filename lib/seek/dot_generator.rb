@@ -228,7 +228,9 @@ class AssetNode < SeekNode
   end
 
   def children
-    current.respond_to?(:contributor) && item.respond_to?(:publications) ? item.publications : []
+    result = current.respond_to?(:contributor) && item.respond_to?(:publications) ? item.publications : []
+    result = result | item.openbis_samples if item.respond_to?(:openbis_samples)
+    result
   end
 
   def as_dot
@@ -249,7 +251,7 @@ class AssayNode < SeekNode
   end
 
   def children
-    deep ? item.assets + item.publications : []
+    deep ? item.assets + item.publications + item.openbis_samples: []
   end
 end
 

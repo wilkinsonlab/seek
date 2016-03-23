@@ -137,8 +137,8 @@ module ISAHelper
           else
             item_type_text = item_type.humanize
           end
-          name = truncate("#{item_type.humanize}: ".html_safe + h(item.title), :length => 110)
-          item_info = link_to("<b>#{item_type.humanize}: </b>".html_safe +  h(item.title), polymorphic_path(item), :title => tooltip_title_attrib(tooltip))
+          name = truncate("#{item_type_text}: ".html_safe + h(item.title), :length => 110)
+          item_info = link_to("<b>#{item_type_text}: </b>".html_safe +  h(item.title), polymorphic_path(item), :title => tooltip_title_attrib(tooltip))
           fave_color = FILL_COLOURS[item_type] || FILL_COLOURS.default
           border_color = BORDER_COLOURS[item_type] || BORDER_COLOURS.default
         end
