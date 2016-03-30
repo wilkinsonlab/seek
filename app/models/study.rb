@@ -49,6 +49,10 @@ class Study < ActiveRecord::Base
     end
   end
 
+  def openbis_project
+    projects.detect{|p| p.openbis_supported?}
+  end
+
   def assets
     related_data_files + related_sops + related_models + related_publications
   end

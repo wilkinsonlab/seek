@@ -95,9 +95,6 @@ module Seek
         type_name.downcase.pluralize
       end
 
-
-
-
     end
   end
 end

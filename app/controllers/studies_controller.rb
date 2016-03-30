@@ -14,11 +14,20 @@ class StudiesController < ApplicationController
 
   before_filter :check_assays_are_not_already_associated_with_another_study,:only=>[:create,:update]
 
+  before_filter :login_to_openbis, :only=>[:new,:edit,:new_object_based_on_existing_one]
+
   include Seek::Publishing::PublishingCommon
 
   include Seek::AnnotationCommon
 
   include Seek::BreadCrumbs
+
+  def login_to_openbis
+    p = Project.all.detect{|p| p.openbis_supported?}
+    if p
+      Seek::Openbis::ConnectionInfo.setup(p.openbis_username, p.openbis_password, p.openbis_as_endpoint, p.openbis_dss_endpoint)
+    end
+  end
 
   def new_object_based_on_existing_one
     @existing_study =  Study.find(params[:id])

@@ -79,7 +79,7 @@ class Assay < ActiveRecord::Base
   end
 
   def openbis_project
-    projects.detect{|p| p.openbis_supported?}
+    study.openbis_project
   end
   def project_ids
     projects.map(&:id)
