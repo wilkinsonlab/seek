@@ -11,15 +11,8 @@ module Seek
         elsif is_pdf_convertable?
           convert_to_pdf
         end
-        if is_txt?
-          content = File.open(filepath).read
-          content = content.gsub("\t", " ")
-          content = content.gsub("\r", " ")
-          content = filter_text_content content
-          content = split_content content, "\n"
-        else
-          content = extract_text_from_pdf
-        end
+        content = extract_text_from_pdf
+
       else
         Rails.logger.error("Unable to find file contents for content blob #{id}")
       end
@@ -35,6 +28,11 @@ module Seek
           copied_filepath = tmp_file.path
 
           FileUtils.cp dat_filepath, copied_filepath
+
+          if is_txt?
+            content = File.open(copied_filepath).read.gsub("\r","\n")
+            File.open(copied_filepath,'w+').write(content)
+          end
 
           ConvertOffice::ConvertOfficeFormat.new.convert(copied_filepath,pdf_filepath)
           t = Time.now
