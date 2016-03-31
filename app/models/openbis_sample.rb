@@ -29,8 +29,8 @@ class OpenbisSample < ActiveRecord::Base
   end
 
   def openbis_refresh
-    Rails.cache.delete("openbis-Sample-#{perm_id}")
     zample=Seek::Openbis::Zample.new(perm_id)
+    Rails.cache.delete(zample.cache_key(perm_id))
     self.update_from_openbis_sample(zample)
     self.save!
   end

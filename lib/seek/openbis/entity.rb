@@ -62,10 +62,13 @@ module Seek
       end
 
       def query_application_server_by_perm_id perm_id=""
-        cache_key = "openbis-application-server-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
-        Rails.cache.fetch(cache_key) do
+        Rails.cache.fetch(cache_key(perm_id)) do
           application_server_query_instance.query({:entityType=>type_name,:queryType=>"ATTRIBUTE",:attribute=>"PermID",:attributeValue=>perm_id})
         end
+      end
+
+      def cache_key perm_id
+        "openbis-application-server-#{type_name}-#{Digest::SHA2.hexdigest(perm_id)}"
       end
 
       def application_server_query_instance
