@@ -11,7 +11,13 @@ module Seek
         elsif is_pdf_convertable?
           convert_to_pdf
         end
-        content = extract_text_from_pdf
+        if is_txt?
+          content = File.open(filepath).read
+          content = filter_text_content content
+          content = split_content content, "\t"
+        else
+          content = extract_text_from_pdf
+        end
       else
         Rails.logger.error("Unable to find file contents for content blob #{id}")
       end
@@ -70,7 +76,7 @@ module Seek
 
     #filters special characters, keeping alphanumeric characters, hyphen ('-'), underscore('_') and newlines
     def filter_text_content content
-      content.gsub(/[^-_0-9a-z \n]/i, '')
+      content.gsub(/[^-_0-9a-z \n\t]/i, '')
     end
   end
 end

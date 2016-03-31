@@ -57,6 +57,12 @@ module Seek
       mime_extensions(blob.content_type).include?('pdf')
     end
 
+    def is_txt?(blob = self)
+      mime_extensions(blob.content_type).include?('txt') ||
+          mime_extensions(blob.content_type).include?('csv') ||
+          mime_extensions(blob.content_type).include?('tsv')
+    end
+
     def is_image?(blob = self)
       blob.content_type.try(:split, '/').try(:first) == 'image'
     end
