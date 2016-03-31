@@ -13,8 +13,10 @@ module Seek
         end
         if is_txt?
           content = File.open(filepath).read
+          content = content.gsub("\t", " ")
+          content = content.gsub("\r", " ")
           content = filter_text_content content
-          content = split_content content, "\t"
+          content = split_content content, "\n"
         else
           content = extract_text_from_pdf
         end
@@ -76,7 +78,7 @@ module Seek
 
     #filters special characters, keeping alphanumeric characters, hyphen ('-'), underscore('_') and newlines
     def filter_text_content content
-      content.gsub(/[^-_0-9a-z \n\t]/i, '')
+      content.gsub(/[^-_0-9a-z \n\t\r]/i, '')
     end
   end
 end
