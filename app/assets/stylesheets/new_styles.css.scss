@@ -324,12 +324,20 @@ label.admin-checkbox {
 a.seek-homepage-button {
   display: block;
   font-size: 200%;
+  background-color: #f7f7f7;
+  border-radius: 4px;
+  padding: 20px;
+  margin: 5px;
+  &:hover {
+    text-decoration: none;
+    background-color: #f0f0f0;
+  }
 }
 
 .seek-homepage-button img {
   width: 120px;
   height: 120px;
-  margin: 5px;
+
 }
 
 @media (min-width: $screen-sm-min) {
