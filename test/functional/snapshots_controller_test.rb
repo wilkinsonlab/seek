@@ -126,6 +126,17 @@ class SnapshotsControllerTest < ActionController::TestCase
     assert flash[:error].include?('exist')
   end
 
+  test "can get confirmation when minting DOI for snapshot" do
+    datacite_mock
+    create_investigation_snapshot
+    login_as(@user)
+
+    get :mint_doi_confirm, :investigation_id => @investigation, :id => @snapshot.snapshot_number
+
+    assert_response :success
+    assert_nil assigns(:snapshot).doi
+  end
+
   test "can mint DOI for snapshot" do
     datacite_mock
     create_investigation_snapshot
@@ -181,6 +192,18 @@ class SnapshotsControllerTest < ActionController::TestCase
     assert !@investigation.can_manage?(other_user)
     assert_redirected_to investigation_path(@investigation)
     assert @snapshot.doi.nil?
+  end
+
+  test "can't get DOI confirmation page when no manage permissions" do
+    datacite_mock
+    create_investigation_snapshot
+    other_user = Factory(:user)
+    login_as(other_user)
+
+    get :mint_doi_confirm, :investigation_id => @investigation, :id => @snapshot.snapshot_number
+
+    assert !@investigation.can_manage?(other_user)
+    assert_redirected_to investigation_path(@investigation)
   end
 
   test "error message mentions DataCite when DataCite broken" do
@@ -355,6 +378,43 @@ class SnapshotsControllerTest < ActionController::TestCase
     assert flash[:error].to_s.include?('Zenodo')
     assert_redirected_to investigation_snapshot_path(@investigation, @snapshot.snapshot_number)
     assert @snapshot.zenodo_deposition_id.nil?
+  end
+
+  test "can delete snapshot without doi" do
+    create_investigation_snapshot
+    login_as(@user)
+
+    assert_difference('Snapshot.count', -1) do
+      delete :destroy, investigation_id: @investigation, id: @snapshot
+    end
+
+    assert_redirected_to investigation_path(@investigation)
+    assert flash[:notice].include?('deleted')
+  end
+
+  test "can't delete snapshot with doi" do
+    create_investigation_snapshot
+    login_as(@user)
+    @snapshot.doi = '10.5072/123'
+    @snapshot.save
+
+    assert_no_difference('Snapshot.count') do
+      delete :destroy, investigation_id: @investigation, id: @snapshot
+    end
+
+    assert_redirected_to investigation_snapshot_path(@investigation, @snapshot)
+    assert flash[:error].include?('DOI')
+  end
+
+  test "can't delete snapshot without permission" do
+    create_investigation_snapshot
+
+    assert_no_difference('Snapshot.count') do
+      delete :destroy, investigation_id: @investigation, id: @snapshot
+    end
+
+    assert_redirected_to investigation_path(@investigation)
+    assert flash[:error].include?('authorized')
   end
 
   private
