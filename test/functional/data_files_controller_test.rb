@@ -1310,7 +1310,22 @@ class DataFilesControllerTest < ActionController::TestCase
     assert_equal update_permission.access_type, Policy::EDITING
   end
 
+  test "do not remove permissions when updating permission" do
+    df = Factory :data_file, :policy => Factory(:private_policy)
+    Factory :permission, :policy => df.policy
 
+    login_as(df.contributor)
+
+    put :update, :id =>df, :sharing=>{"access_type_#{Policy::ALL_USERS}"=>Policy::NO_ACCESS,:sharing_scope=>Policy::ALL_USERS, :your_proj_access_type => Policy::ACCESSIBLE}
+
+    df.reload
+    permissions = df.policy.permissions
+    assert_equal 1, permissions.size
+    permission = permissions.first
+    assert_equal "Project", permission.contributor_type
+    assert_equal df.projects.first.id, permission.contributor_id
+    assert_equal Policy::ACCESSIBLE, permission.access_type
+  end
 
 
   test "explore logged as inline view" do
@@ -2421,8 +2436,34 @@ class DataFilesControllerTest < ActionController::TestCase
       end
     end
 
+    assert_redirected_to data_file_path(data_file)
+  end
+
+  test "can't extract from data file if samples already extracted" do
+    person = Factory(:person)
+    login_as(person)
+
+    data_file = Factory :data_file, content_blob: Factory(:sample_type_populated_template_content_blob),
+                        policy: Factory(:private_policy),
+                        contributor: person.user
+    refute data_file.sample_template?
+    assert_empty data_file.possible_sample_types
+
+    sample_type = SampleType.new title:'from template'
+    sample_type.content_blob = Factory(:sample_type_template_content_blob)
+    sample_type.build_attributes_from_template
+    sample_type.save!
+    extracted_sample = Factory(:sample, data: { full_name: 'John Wayne' },
+                               sample_type: sample_type,
+                               originating_data_file: data_file)
+
+    assert_no_difference("Sample.count") do
+      post :extract_samples, id: data_file, confirm: 'true'
+    end
 
     assert_redirected_to data_file_path(data_file)
+    assert_not_empty flash[:error]
+    assert flash[:error].include?('Already extracted')
   end
 
   private
