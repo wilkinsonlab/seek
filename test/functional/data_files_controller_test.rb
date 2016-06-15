@@ -2131,6 +2131,86 @@ class DataFilesControllerTest < ActionController::TestCase
     assert blob.caching_job.exists?
   end
 
+  test "should display null license text" do
+    df = Factory :data_file, :policy => Factory(:public_policy)
+
+    get :show, :id => df
+
+    assert_select '.panel .panel-body span.none_text', :text => 'No license specified'
+  end
+
+  test "should display license" do
+    df = Factory :data_file, :license => 'CC-BY-4.0', :policy => Factory(:public_policy)
+
+    get :show, :id => df
+
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution 4.0'
+  end
+
+  test "should display license for current version" do
+    df = Factory :data_file, :license => 'CC-BY-4.0', :policy => Factory(:public_policy)
+    dfv = Factory :data_file_version_with_blob, :data_file => df
+
+    df.update_attributes :license => 'CC0-1.0'
+
+    get :show, :id => df, :version => 1
+    assert_response :success
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution 4.0'
+
+    get :show, :id => df, :version => dfv.version
+    assert_response :success
+    assert_select '.panel .panel-body a', :text => 'CC0 1.0'
+  end
+
+  test "should update license" do
+    user = users(:datafile_owner)
+    login_as(user)
+    df = data_files(:editable_data_file)
+
+    assert_nil df.license
+
+    put :update, :id => df, :data_file => { :license => 'CC-BY-SA-4.0' }
+
+    assert_response :redirect
+
+    get :show, :id => df
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution Share-Alike 4.0'
+    assert_equal 'CC-BY-SA-4.0', assigns(:data_file).license
+  end
+
+  test "check correct license pre-selected" do
+    df = Factory :data_file, :license => 'CC-BY-SA-4.0', :policy => Factory(:public_policy)
+
+    get :edit, :id => df
+    assert_response :success
+    assert_select '#license-select option[selected=?]', 'selected', :text => 'Creative Commons Attribution Share-Alike 4.0'
+
+    df2 = Factory :data_file, :license => nil, :policy => Factory(:public_policy)
+
+    get :edit, :id => df2
+    assert_response :success
+    assert_select '#license-select option[selected=?]', 'selected', :text => 'License Not Specified'
+
+    get :new
+    assert_response :success
+    assert_select '#license-select option[selected=?]', 'selected', :text => 'Creative Commons Attribution 4.0'
+  end
+
+  test "programme data files through nested routing" do
+    assert_routing 'programmes/2/data_files', { controller: 'data_files', action: 'index', programme_id: '2' }
+    programme = Factory(:programme)
+    data_file = Factory(:data_file, projects: programme.projects, policy: Factory(:public_policy))
+    data_file2 = Factory(:data_file, policy: Factory(:public_policy))
+
+    get :index, programme_id: programme.id
+
+    assert_response :success
+    assert_select "div.list_item_title" do
+      assert_select "a[href=?]", data_file_path(data_file), text: data_file.title
+      assert_select "a[href=?]", data_file_path(data_file2), text: data_file2.title, count: 0
+    end
+  end
+
   private
 
   def mock_http

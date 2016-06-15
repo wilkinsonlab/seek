@@ -184,6 +184,7 @@ SEEK::Application.routes.draw do
       get :admin
       get :admin_members
       get :admin_member_roles
+      get :storage_report
       post :update_members
     end
     resources :people,:institutions,:assays,:studies,:investigations,:models,:sops,:data_files,:presentations,
@@ -232,8 +233,9 @@ SEEK::Application.routes.draw do
       post :resource_in_tab
     end
     resources :people,:projects,:assays,:studies,:models,:sops,:data_files,:publications,:only=>[:index]
-    resources :snapshots, :only => [:show, :new, :create] do
+    resources :snapshots, :only => [:show, :new, :create, :destroy] do
       member do
+        get :mint_doi_confirm
         post :mint_doi
         get :download
         get :export, to: :export_preview
@@ -257,8 +259,22 @@ SEEK::Application.routes.draw do
       post :items_for_result
       post :resource_in_tab
     end
+    resources :snapshots, :only => [:show, :new, :create, :destroy] do
+      member do
+        get :mint_doi_confirm
+        post :mint_doi
+        get :download
+        get :export, to: :export_preview
+        post :export, to: :export_submit
+      end
+    end
     member do
       get :new_object_based_on_existing_one
+      post :check_related_items
+      post :check_gatekeeper_required
+      post :publish_related_items
+      post :publish
+      get :published
     end
     resources :people,:projects,:assays,:investigations,:models,:sops,:data_files,:publications,:only=>[:index]
   end
@@ -271,8 +287,22 @@ SEEK::Application.routes.draw do
       #MERGENOTE - these should be gets and are tested as gets, using post to fix later
       post :resource_in_tab
     end
+    resources :snapshots, :only => [:show, :new, :create, :destroy] do
+      member do
+        get :mint_doi_confirm
+        post :mint_doi
+        get :download
+        get :export, to: :export_preview
+        post :export, to: :export_submit
+      end
+    end
     member do
       post :update_annotations_ajax
+      post :check_related_items
+      post :check_gatekeeper_required
+      post :publish_related_items
+      post :publish
+      get :published
       get :new_object_based_on_existing_one
     end
     resources :people,:projects,:investigations,:studies,:models,:sops,:data_files,:publications,:strains,:only=>[:index]
@@ -340,6 +370,7 @@ SEEK::Application.routes.draw do
     resources :content_blobs do
       member do
         get :view_pdf_content
+        get :view_content
         get :get_pdf
         get :download
       end
@@ -370,6 +401,7 @@ SEEK::Application.routes.draw do
     resources :content_blobs do
       member do
         get :view_pdf_content
+        get :view_content
         get :get_pdf
         get :download
       end
@@ -415,10 +447,11 @@ SEEK::Application.routes.draw do
         post :select
       end
     end
-    resources :content_blobs do
 
+    resources :content_blobs do
       member do
         get :view_pdf_content
+        get :view_content
         get :get_pdf
         get :download
       end
@@ -456,6 +489,7 @@ SEEK::Application.routes.draw do
     resources :content_blobs do
       member do
         get :view_pdf_content
+        get :view_content
         get :get_pdf
         get :download
       end
@@ -485,8 +519,10 @@ SEEK::Application.routes.draw do
       put :reject_activation
       get :reject_activation_confirmation
       post :spawn_project
+      get :storage_report
     end
-    resources :people,:projects, :institutions
+    resources :people,:projects, :institutions, :investigations, :studies, :assays,
+              :data_files, :models, :sops, :presentations, :events, :publications
   end
 
   resources :publications do
@@ -627,6 +663,14 @@ SEEK::Application.routes.draw do
       get :runs
       post :download_results
       get :view_result
+    end
+  end
+
+  resources :site_announcements do
+    collection do
+      get :feed
+      get :notification_settings
+      post :update_notification_settings
     end
   end
 

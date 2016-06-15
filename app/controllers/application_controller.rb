@@ -249,7 +249,7 @@ class ApplicationController < ActionController::Base
       when 'destroy', 'destroy_item', 'cancel'
         'delete'
 
-      when 'manage', 'notification', 'read_interaction', 'write_interaction', 'report_problem'
+      when 'manage', 'notification', 'read_interaction', 'write_interaction', 'report_problem', 'storage_report'
           'manage'
       else
         nil
@@ -393,7 +393,7 @@ class ApplicationController < ActionController::Base
                                :data => object.title,
                                :user_agent => request.env["HTTP_USER_AGENT"])
           end
-        when "people"
+        when "people","projects","institutions"
           if ["show", "create", "update", "destroy"].include?(action)
             ActivityLog.create(:action => action,
                                :culprit => current_user,
@@ -411,7 +411,7 @@ class ApplicationController < ActionController::Base
                                :data => {:search_query => object, :result_count => @results.count})
           end
         when "content_blobs"
-          action = "inline_view" if action=="view_pdf_content"
+          action = "inline_view" if action=="view_content"
           if action=="inline_view" || (action=="download" && params['intent'].to_s != 'inline_view')
             activity_loggable = object.asset
             ActivityLog.create(:action => action,

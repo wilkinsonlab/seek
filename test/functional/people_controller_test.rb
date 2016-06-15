@@ -667,21 +667,6 @@ class PeopleControllerTest < ActionController::TestCase
 
   end
 
-  test 'should show that the person is asset housekeeper for admin' do
-    person = Factory(:asset_housekeeper)
-
-    get :show, id: person
-    assert_select 'li', text: /This person is an Asset housekeeper/, count: 1
-  end
-
-  test 'should not show that the person is asset housekeeper for non-admin' do
-    person = Factory(:asset_housekeeper)
-
-    login_as(:aaron)
-    get :show, id: person
-    assert_select 'li', text: /This person is an Asset housekeeper/, count: 0
-  end
-
   def test_project_administrator_can_administer_others_in_the_same_project
     pm = Factory(:project_administrator)
     other_person = Factory(:person, group_memberships: [Factory(:group_membership, work_group: pm.group_memberships.first.work_group)])
@@ -722,7 +707,7 @@ class PeopleControllerTest < ActionController::TestCase
   test 'should have asset housekeeper icon on person show page' do
     asset_housekeeper = Factory(:asset_housekeeper)
     get :show, id: asset_housekeeper
-    assert_select 'img[src*=?]', /medal_bronze_3.png/, count: 1
+    assert_select 'img[src*=?]', /#{role_image(:asset_housekeeper)}/, count: 1
   end
 
   test 'should have asset housekeeper icon on people index page' do
@@ -731,13 +716,13 @@ class PeopleControllerTest < ActionController::TestCase
     end
     get :index
     asset_housekeeper_number = assigns(:people).select(&:is_asset_housekeeper_of_any_project?).count
-    assert_select 'img[src*=?]', /medal_bronze_3/, count: asset_housekeeper_number
+    assert_select 'img[src*=?]', /#{role_image(:asset_housekeeper)}/, count: asset_housekeeper_number
   end
 
   test 'should have project administrator icon on person show page' do
     project_administrator = Factory(:project_administrator)
     get :show, id: project_administrator
-    assert_select 'img[src*=?]', /medal_gold_1.png/, count: 1
+    assert_select 'img[src*=?]', /#{role_image(:project_administrator)}/, count: 1
   end
 
   test 'should have project administrator icon on people index page' do
@@ -748,7 +733,7 @@ class PeopleControllerTest < ActionController::TestCase
     get :index
 
     project_administrator_count = assigns(:people).select(&:is_project_administrator_of_any_project?).count
-    assert_select 'img[src*=?]', /medal_gold_1.png/, count: project_administrator_count
+    assert_select 'img[src*=?]', /#{role_image(:project_administrator)}/, count: project_administrator_count
   end
 
   test 'project administrator can only see projects he can manage to assign to person' do
@@ -1185,25 +1170,10 @@ class PeopleControllerTest < ActionController::TestCase
     assert person.is_asset_gatekeeper?(work_group.project)
   end
 
-  test 'should show that the person is gatekeeper for admin' do
-    person = Factory(:asset_gatekeeper)
-
-    get :show, id: person
-    assert_select 'li', text: /This person is an Asset gatekeeper/, count: 1
-  end
-
-  test 'should not show that the person is gatekeeper for non-admin' do
-    person = Factory(:asset_gatekeeper)
-
-    login_as(:aaron)
-    get :show, id: person
-    assert_select 'li', text: /This person is an Asset gatekeeper/, count: 0
-  end
-
   test 'should have gatekeeper icon on person show page' do
     gatekeeper = Factory(:asset_gatekeeper)
     get :show, id: gatekeeper
-    assert_select 'img[src*=?]', /medal_silver_2.png/, count: 1
+    assert_select 'img[src*=?]', /#{role_image(:asset_gatekeeper)}/, count: 1
   end
 
   test 'should have gatekeeper icon on people index page' do
@@ -1212,7 +1182,7 @@ class PeopleControllerTest < ActionController::TestCase
     end
     get :index
     gatekeeper_number = assigns(:people).select(&:is_asset_gatekeeper_of_any_project?).count
-    assert_select 'img[src*=?]', /medal_silver_2/, count: gatekeeper_number
+    assert_select 'img[src*=?]', /#{role_image(:asset_gatekeeper)}/, count: gatekeeper_number
   end
 
   test 'unsubscribe to a project should unsubscribe all the items of that project' do
@@ -1346,7 +1316,7 @@ class PeopleControllerTest < ActionController::TestCase
     Seek::Config.limit_latest = 5
     get :index
     assert_response :success
-    assert_select 'li.current_page' do
+    assert_select ".pagination li.active" do
       assert_select 'a[href=?]', people_path(page: 'latest')
     end
     assert_select 'div.list_item_title', count: 5
@@ -1620,5 +1590,9 @@ class PeopleControllerTest < ActionController::TestCase
 
   def mask_for_pal
     Seek::Roles::Roles.instance.mask_for_role("pal")
+  end
+
+  def role_image(role)
+    Seek::ImageFileDictionary.instance.image_filename_for_key(role)
   end
 end

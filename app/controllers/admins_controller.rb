@@ -16,7 +16,7 @@ class AdminsController < ApplicationController
   end
 
   def update_admins
-    admin_ids = params[:admins] || []
+    admin_ids = params[:admins].split(',') || []
     current_admins = Person.admins
     admins = admin_ids.map { |id| Person.find(id) }
     current_admins.each { |ca| ca.is_admin = false }
@@ -41,8 +41,7 @@ class AdminsController < ApplicationController
     Seek::Config.events_enabled = string_to_boolean params[:events_enabled]
     Seek::Config.email_enabled = string_to_boolean params[:email_enabled]
     Seek::Config.pdf_conversion_enabled = string_to_boolean params[:pdf_conversion_enabled]
-    Seek::Config.delete_asset_version_enabled = string_to_boolean params[:delete_asset_version_enabled]
-    Seek::Config.forum_enabled = string_to_boolean params[:forum_enabled]
+    #Seek::Config.delete_asset_version_enabled = string_to_boolean params[:delete_asset_version_enabled]
     Seek::Config.show_announcements = string_to_boolean params[:show_announcements]
     Seek::Config.programmes_enabled = string_to_boolean params[:programmes_enabled]
     Seek::Config.programme_user_creation_enabled = string_to_boolean params[:programme_user_creation_enabled]
@@ -104,29 +103,23 @@ class AdminsController < ApplicationController
   end
 
   def update_home_settings
-    Seek::Config.project_news_enabled = string_to_boolean params[:project_news_enabled]
-    Seek::Config.project_news_feed_urls = params[:project_news_feed_urls]
+    Seek::Config.news_enabled = string_to_boolean params[:news_enabled]
+    Seek::Config.news_feed_urls = params[:news_feed_urls]
 
-    project_entries = params[:project_news_number_of_entries]
-    is_project_entries_integer = only_integer project_entries, "#{t('project')} news items"
-    Seek::Config.project_news_number_of_entries = project_entries if is_project_entries_integer
-
-    Seek::Config.community_news_enabled = string_to_boolean params[:community_news_enabled]
-    Seek::Config.community_news_feed_urls = params[:community_news_feed_urls]
-
-    community_entries = params[:community_news_number_of_entries]
-    is_community_entries_integer = only_integer community_entries, 'community news items'
-    Seek::Config.community_news_number_of_entries = community_entries if is_community_entries_integer
+    entries = params[:news_number_of_entries]
+    is_entries_integer = only_integer entries, "news items"
+    Seek::Config.news_number_of_entries = entries if is_entries_integer
 
     Seek::Config.home_description = params[:home_description]
+
+#    Seek::Config.front_page_buttons_enabled = params[:front_page_buttons_enabled]
     begin
       Seek::FeedReader.clear_cache
     rescue => e
       logger.error "Error whilst attempting to clear feed cache #{e.message}"
     end
 
-    validation_flag = is_project_entries_integer && is_community_entries_integer
-    update_redirect_to validation_flag, 'home_settings'
+    update_redirect_to is_entries_integer, 'home_settings'
   end
 
   def update_imprint_setting

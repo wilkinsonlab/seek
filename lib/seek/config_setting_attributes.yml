@@ -165,3 +165,8 @@ default_all_visitors_access_type:
   convert: :to_i
 default_project_members_access_type:
   convert: :to_i
+news_enabled:
+news_feed_urls:
+news_number_of_entries:
+  convert: :to_i
+front_page_buttons_enabled:

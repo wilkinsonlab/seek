@@ -1093,6 +1093,68 @@ class ModelsControllerTest < ActionController::TestCase
     end
   end
 
+  test "should display null license text" do
+    model = Factory :model, :policy => Factory(:public_policy)
+
+    get :show, :id => model
+
+    assert_select '.panel .panel-body span.none_text', :text => 'No license specified'
+  end
+
+  test "should display license" do
+    model = Factory :model, :license => 'CC-BY-4.0', :policy => Factory(:public_policy)
+
+    get :show, :id => model
+
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution 4.0'
+  end
+
+  test "should display license for current version" do
+    model = Factory :model, :license => 'CC-BY-4.0', :policy => Factory(:public_policy)
+    modelv = Factory :model_version_with_blob, :model => model
+
+    model.update_attributes :license => 'CC0-1.0'
+
+    get :show, :id => model, :version => 1
+    assert_response :success
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution 4.0'
+
+    get :show, :id => model, :version => modelv.version
+    assert_response :success
+    assert_select '.panel .panel-body a', :text => 'CC0 1.0'
+  end
+
+  test "should update license" do
+    user = users(:model_owner)
+    login_as(user)
+    model = models(:teusink_with_space)
+
+    assert_nil model.license
+
+    put :update, :id => model, :model => { :license => 'CC-BY-SA-4.0' }
+
+    assert_response :redirect
+
+    get :show, :id => model
+    assert_select '.panel .panel-body a', :text => 'Creative Commons Attribution Share-Alike 4.0'
+    assert_equal 'CC-BY-SA-4.0', assigns(:model).license
+  end
+
+  test "programme models through nested routing" do
+    assert_routing 'programmes/2/models', { controller: 'models', action: 'index', programme_id: '2' }
+    programme = Factory(:programme)
+    model = Factory(:model, projects: programme.projects, policy: Factory(:public_policy))
+    model2 = Factory(:model, policy: Factory(:public_policy))
+
+    get :index, programme_id: programme.id
+
+    assert_response :success
+    assert_select "div.list_item_title" do
+      assert_select "a[href=?]", model_path(model), text: model.title
+      assert_select "a[href=?]", model_path(model2), text: model2.title, count: 0
+    end
+  end
+
   def valid_model
     { :title=>"Test",:project_ids=>[projects(:sysmo_project).id]}
   end
