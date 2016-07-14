@@ -106,6 +106,8 @@ gem 'zenodo-client', git: 'https://github.com/seek4science/zenodo-client.git'
 gem 'unicorn-rails'
 gem 'seedbank'
 
+gem 'rspec-rails'
+
 group :assets do
   gem 'turbo-sprockets-rails3'
   gem 'yui-compressor'
@@ -114,6 +116,7 @@ end
 group :production do
   gem 'passenger'
   gem 'puma'
+  gem 'system'
 end
 
 group :development do
@@ -134,7 +137,6 @@ group :test do
   gem 'minitest', '~> 4.0'
   gem 'minitest-reporters'
   gem 'coveralls', require: false
-  gem 'rspec-rails'
   gem 'sunspot_matchers'
   gem 'magic_lamp'
   gem 'database_cleaner'
