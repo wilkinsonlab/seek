@@ -5,16 +5,16 @@ Samples.initTable = function (selector, enableRowSelection, opts) {
     enableRowSelection = enableRowSelection || false;
     opts = opts || {};
 
-    $j('table tfoot th', selector).each( function () {
+    $j('table tfoot th', selector).each(function () {
         var title = $j(this).text();
-        $j(this).html('<input type="text" class="form-control" placeholder="Search '+title+'" />');
+        $j(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '" />');
     });
 
     var options = $j.extend({}, opts, {
-        "lengthMenu": [ 5, 10, 25, 50, 75, 100 ],
+        "lengthMenu": [5, 10, 25, 50, 75, 100],
         dom: 'lr<"samples-table-container"t>ip', // Needed to place the buttons
         "columnDefs": [{
-            "targets": [ 0, 1 ],
+            "targets": [0, 1],
             "visible": false,
             "searchable": false
         }]
@@ -28,46 +28,47 @@ Samples.initTable = function (selector, enableRowSelection, opts) {
         //}
     });
 
-    if($j('table', selector).data('sourceUrl'))
+    if ($j('table', selector).data('sourceUrl'))
         options.ajax = $j('table', selector).data('sourceUrl');
 
-    if(options.ajax) {
-        options.columns = [{ data: 'id'},{ data: 'title'}];
+    if (options.ajax) {
+        options.columns = [{data: 'id'}, {data: 'title'}];
         $j('table thead th', selector).each(function (index, column) {
-            if($j(column).data('hashKey'))
-                options.columns.push({ data: 'data.' + $j(column).data('hashKey') });
+            if ($j(column).data('hashKey'))
+                options.columns.push({data: 'data.' + $j(column).data('hashKey')});
         });
     }
 
     // Date Columns
     var dateColumns = [];
     $j('table thead th', selector).each(function (index, column) {
-        if($j(column).data('columnType') == 'Date' ||
-           $j(column).data('columnType') == 'DateTime') {
+        if ($j(column).data('columnType') == 'Date' ||
+            $j(column).data('columnType') == 'DateTime') {
             dateColumns.push(index);
         }
     });
-    if(dateColumns.length > 0) {
+    if (dateColumns.length > 0) {
         options["columnDefs"].push({
             "targets": dateColumns,
             "type": "date"
         });
     }
-    // The following only needed if we're loading the data from ajax
 
-    if($j('table', selector).data('sourceUrl')) {
+    // The following renderers only needed if we're loading the data from ajax
+    if ($j('table', selector).data('sourceUrl')) {
+
         // Strain columns
         var strainColumns = [];
         $j('table thead th', selector).each(function (index, column) {
-            if($j(column).data('columnType') == 'SeekStrain') {
+            if ($j(column).data('columnType') == 'SeekStrain') {
                 strainColumns.push(index);
             }
         });
-        if(strainColumns.length > 0) {
+        if (strainColumns.length > 0) {
             options["columnDefs"].push({
                 "targets": strainColumns,
                 "render": function (data, type, row) {
-                    if(data.id) {
+                    if (data.id) {
                         if (data.title)
                             return '<a href="/strains/' + data.id + '">' + data.title + '</a>';
                         else
@@ -79,9 +80,25 @@ Samples.initTable = function (selector, enableRowSelection, opts) {
             });
         }
 
+        // ICE ID columns
+        var iceColumns = [];
+        $j('table thead th', selector).each(function (index, column) {
+            if($j(column).data('columnType') == 'IceId') {
+                iceColumns.push(index);
+            }
+        });
+        if(iceColumns.length > 0) {
+            options["columnDefs"].push({
+                "targets": iceColumns,
+                "render": function (data, type, row) {
+                    return '<a href="https://ice.synbiochem.co.uk/entry/' + data + '">' + data + '</a>';
+                }
+            });
+        }
+
         // Title column
         $j('table thead th', selector).each(function (index, column) {
-            if($j(column).data('titleColumn')) {
+            if ($j(column).data('titleColumn')) {
                 options["columnDefs"].push({
                     "targets": [index],
                     "render": function (data, type, row) {

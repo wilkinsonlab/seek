@@ -12,5 +12,6 @@ SampleAttributeType.find_or_create_by_title("CHEBI ID",regexp:'CHEBI:[0-9]+', ba
 SampleAttributeType.find_or_create_by_title("Boolean",base_type:'Boolean')
 SampleAttributeType.find_or_create_by_title("SEEK Strain",base_type:'SeekStrain')
 SampleAttributeType.find_or_create_by_title("Controlled Vocabulary",base_type:'CV')
+SampleAttributeType.find_or_create_by_title("ICE ID",base_type:'IceId')
 
 puts "Seeded #{SampleAttributeType.count - count} sample attribute types."
