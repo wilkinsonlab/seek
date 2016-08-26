@@ -56,9 +56,6 @@ Assay:
   contributor:
       label: Contributor
       value_from: contributor:name
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
 
 #assets
 DataFile:
@@ -81,9 +78,7 @@ DataFile:
   contributor:
       label: Contributor
       value_from: contributor:person:name,creators:name
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
+
 
 Model:
   organism:
@@ -112,9 +107,7 @@ Model:
   contributor:
       label: Contributor
       value_from: contributor:person:name,creators:name
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
+
 
 Sop:
   project:
@@ -136,9 +129,6 @@ Sop:
   contributor:
       label: Contributor
       value_from: contributor:person:name,creators:name
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
 
 Publication:
   project:
@@ -150,12 +140,9 @@ Publication:
   published_year:
       label: Published Year
       value_from: published_date:year
-  organism:
-      label: Organism
-      value_from: related_organisms:title
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
+  journal:
+      label: Journal
+      value_from: journal
 
 Presentation:
   project:
@@ -187,9 +174,9 @@ Person:
       value_from: name
 
 Project:
-  name:
-      label: Name
-      value_from: title
+  programme:
+      label: Programme
+      value_from: programme:title
   organism:
       label: Organism
       value_from: organisms:title
@@ -199,17 +186,20 @@ Project:
   location:
       label: Location
       value_from: locations
-
-Institution:
   name:
       label: Name
       value_from: title
+
+Institution:
   project:
       label: Project
       value_from: projects:title
   location:
       label: Location
       value_from: country
+  name:
+      label: Name
+      value_from: title
 
 Programme:
   name:
@@ -233,9 +223,6 @@ Strain:
   contributor:
       label: Contributor
       value_from: contributor:person:name
-  tag:
-      label: Tag
-      value_from: tags_as_text_array
 
 Specimen:
   organism:
@@ -293,3 +280,6 @@ Event:
   country:
       label: Country
       value_from: country
+  city:
+      label: City
+      value_from: city
