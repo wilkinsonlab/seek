@@ -234,4 +234,41 @@ class SampleAttributeTest < ActiveSupport::TestCase
     attribute.sample_controlled_vocab = Factory(:apples_sample_controlled_vocab)
     refute attribute.valid?
   end
+
+  test 'sample attribute factory' do
+    attribute = Factory(:sample_sample_attribute, is_title: true, sample_type: Factory(:simple_sample_type))
+    assert attribute.valid?
+    refute_nil attribute.linked_sample_type
+    assert attribute.linked_sample_type.is_a?(SampleType)
+  end
+
+  test 'linked sample type must exist for SeekSample type' do
+    attribute = Factory(:sample_sample_attribute, is_title: true, sample_type: Factory(:simple_sample_type))
+    assert attribute.valid?
+    attribute.linked_sample_type=nil
+    refute attribute.valid?
+  end
+
+  test 'linked sample type must not exist if not SeekSample type' do
+    attribute = Factory(:simple_string_sample_attribute, is_title: true, sample_type: Factory(:simple_sample_type))
+    assert attribute.valid?
+    attribute.linked_sample_type=Factory(:simple_sample_type)
+    refute attribute.valid?
+  end
+
+  test 'sample attribute validate value' do
+    good_sample = Factory(:patient_sample)
+    bad_sample = Factory(:sample)
+    attribute = Factory(:sample_sample_attribute, is_title: true, sample_type: Factory(:simple_sample_type),linked_sample_type:good_sample.sample_type)
+
+    assert attribute.validate_value?(good_sample.id)
+    assert attribute.validate_value?(good_sample.id.to_s)
+    #also ok with title
+    assert attribute.validate_value?(good_sample.title)
+
+
+    refute attribute.validate_value?(bad_sample.id)
+    refute attribute.validate_value?(bad_sample.id.to_s)
+    refute attribute.validate_value?('fish')
+  end
 end

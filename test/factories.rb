@@ -1171,6 +1171,11 @@ end
     f.base_type 'SeekStrain'
   end
 
+  Factory.define(:sample_sample_attribute_type,:class=>SampleAttributeType) do |f|
+    f.sequence(:title) {|n| "Sample attribute type #{n}"}
+    f.base_type 'SeekSample'
+  end
+
   Factory.define(:sample_attribute) do |f|
     f.sequence(:title) {|n| "Sample attribute #{n}"}
     f.association :sample_type, :factory => :sample_type
@@ -1235,31 +1240,31 @@ end
     end
   end
 
-Factory.define(:sample) do |f|
-  f.sequence(:title) {|n| "Sample #{n}"}
-  f.association :sample_type,:factory=>:simple_sample_type
-  f.projects { [Factory.build(:project)] }
-  f.after_build do |sample|
-    sample.set_attribute(:the_title, sample.title) if sample.data.key?(:the_title)
+  Factory.define(:sample) do |f|
+    f.sequence(:title) {|n| "Sample #{n}"}
+    f.association :sample_type,:factory=>:simple_sample_type
+    f.projects { [Factory.build(:project)] }
+    f.after_build do |sample|
+      sample.set_attribute(:the_title, sample.title) if sample.data.key?(:the_title)
+    end
   end
-end
 
-Factory.define(:patient_sample, :parent=>:sample) do |f|
-  f.association :sample_type, :factory => :patient_sample_type
-  f.after_build do |sample|
-    sample.set_attribute(:full_name, "Fred Bloggs")
-    sample.set_attribute(:age, 44)
-    sample.set_attribute(:weight, 88.7)
+  Factory.define(:patient_sample, :parent=>:sample) do |f|
+    f.association :sample_type, :factory => :patient_sample_type
+    f.after_build do |sample|
+      sample.set_attribute(:full_name, "Fred Bloggs")
+      sample.set_attribute(:age, 44)
+      sample.set_attribute(:weight, 88.7)
+    end
   end
-end
 
-Factory.define(:strain_sample_type, :parent=>:sample_type) do |f|
-  f.title "Strain type"
-  f.after_build do |type|
-    type.sample_attributes << Factory.build(:sample_attribute,:title=>"name",:sample_attribute_type=>Factory(:string_sample_attribute_type),:required=>true,:is_title=>true, :sample_type => type)
-    type.sample_attributes << Factory.build(:sample_attribute,:title=>"seekstrain",:sample_attribute_type=>Factory(:strain_sample_attribute_type),:required=>true, :sample_type => type)
+  Factory.define(:strain_sample_type, :parent=>:sample_type) do |f|
+    f.title "Strain type"
+    f.after_build do |type|
+      type.sample_attributes << Factory.build(:sample_attribute,:title=>"name",:sample_attribute_type=>Factory(:string_sample_attribute_type),:required=>true,:is_title=>true, :sample_type => type)
+      type.sample_attributes << Factory.build(:sample_attribute,:title=>"seekstrain",:sample_attribute_type=>Factory(:strain_sample_attribute_type),:required=>true, :sample_type => type)
+    end
   end
-end
 
 Factory.define(:sample_controlled_vocab_term) do |f|
 
@@ -1280,6 +1285,12 @@ Factory.define(:controlled_vocab_attribute_type,:class=>SampleAttributeType) do 
   f.base_type 'CV'
 end
 
+Factory.define(:sample_sample_attribute, parent: :sample_attribute) do |f|
+  f.sequence(:title) {|n| "sample attribute #{n}"}
+  f.linked_sample_type Factory.build(:simple_sample_type)
+  f.sample_attribute_type Factory(:sample_sample_attribute_type)
+end
+
 Factory.define(:apples_controlled_vocab_attribute,parent: :sample_attribute) do |f|
   f.sequence(:title) {|n| "apples controlled vocab attribute #{n}"}
   f.sample_controlled_vocab Factory.build(:apples_sample_controlled_vocab)
@@ -1290,5 +1301,13 @@ Factory.define(:apples_controlled_vocab_sample_type, :parent=>:sample_type) do |
   f.sequence(:title) {|n| "apples controlled vocab sample type #{n}"}
   f.after_build do |type|
     type.sample_attributes << Factory.build(:apples_controlled_vocab_attribute,title:'apples',is_title:true,required:true,sample_type:type)
+  end
+end
+
+Factory.define(:linked_sample_type, :parent=>:sample_type) do |f|
+  f.sequence(:title) {|n| "linked sample type #{n}"}
+  f.after_build do |type|
+    type.sample_attributes << Factory.build(:sample_attribute,:title=>"title",:sample_attribute_type=>Factory(:string_sample_attribute_type),:required=>true,:is_title=>true, :sample_type => type)
+    type.sample_attributes << Factory.build(:sample_sample_attribute, title:'patient', linked_sample_type: Factory(:patient_sample_type),:required=>true, :sample_type => type)
   end
 end

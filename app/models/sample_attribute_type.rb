@@ -9,7 +9,7 @@ class SampleAttributeType < ActiveRecord::Base
 
   scope :primitive_string_types, where(base_type: 'String', regexp: '.*')
 
-  BASE_TYPES = %w(Integer Float String DateTime Date Text Boolean SeekStrain CV)
+  BASE_TYPES = %w(Integer Float String DateTime Date Text Boolean SeekStrain SeekSample CV)
 
   def validate_allowed_type
     unless SampleAttributeType.allowed_base_types.include?(base_type)
@@ -29,8 +29,8 @@ class SampleAttributeType < ActiveRecord::Base
     self == self.class.default
   end
 
-  def validate_value?(value,additional_options={})
-    check_value_against_base_type(value,additional_options) && check_value_against_regular_expression(value)
+  def validate_value?(value, additional_options = {})
+    check_value_against_base_type(value, additional_options) && check_value_against_regular_expression(value)
   end
 
   def as_json(_options = nil)
@@ -56,19 +56,23 @@ class SampleAttributeType < ActiveRecord::Base
     match && match.to_s == value.to_s
   end
 
-  def check_value_against_base_type(value,additional_options)
-    base_type_handler.validate_value?(value,additional_options)
+  def check_value_against_base_type(value, additional_options)
+    base_type_handler(additional_options).validate_value?(value)
   end
 
-  def pre_process_value(value)
-    base_type_handler.convert(value)
+  def pre_process_value(value, additional_options)
+    base_type_handler(additional_options).convert(value)
   end
 
   def is_controlled_vocab?
-    base_type=="CV"
+    base_type == 'CV'
   end
 
-  def base_type_handler
-    Seek::Samples::AttributeTypeHandlers::AttributeTypeHandlerFactory.instance.for_base_type(base_type)
+  def is_seek_sample?
+    base_type == 'SeekSample'
+  end
+
+  def base_type_handler(additional_options)
+    Seek::Samples::AttributeTypeHandlers::AttributeTypeHandlerFactory.instance.for_base_type(base_type, additional_options)
   end
 end

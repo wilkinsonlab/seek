@@ -148,7 +148,7 @@ class SampleAttributeTypeTest < ActiveSupport::TestCase
   end
 
   test 'allowed types' do
-    assert_equal %w(Boolean CV Date DateTime Float Integer SeekStrain String Text).sort, SampleAttributeType.allowed_base_types.sort
+    assert_equal %w(Boolean CV Date DateTime Float Integer SeekSample SeekStrain String Text).sort, SampleAttributeType.allowed_base_types.sort
   end
 
   test 'chebi atribute' do
@@ -168,5 +168,18 @@ class SampleAttributeTypeTest < ActiveSupport::TestCase
     refute type.is_controlled_vocab?
     type = Factory(:boolean_sample_attribute_type)
     refute type.is_controlled_vocab?
+    type = Factory(:sample_sample_attribute_type)
+    refute type.is_controlled_vocab?
+  end
+
+  test 'is_seek_sample?' do
+    type = Factory(:sample_sample_attribute_type)
+    assert type.is_seek_sample?
+    type = Factory(:text_sample_attribute_type)
+    refute type.is_seek_sample?
+    type = Factory(:boolean_sample_attribute_type)
+    refute type.is_seek_sample?
+    type = Factory(:controlled_vocab_attribute_type)
+    refute type.is_seek_sample?
   end
 end

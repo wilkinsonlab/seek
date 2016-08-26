@@ -42,6 +42,29 @@ class SampleTypesControllerTest < ActionController::TestCase
     assert_equal 'a string', assigns(:sample_type).sample_attributes.title_attributes.first.title
   end
 
+  test 'should create with linked sample type' do
+    linked_sample_type = Factory(:sample_sample_attribute_type)
+    assert_difference('SampleType.count') do
+      post :create, sample_type: { title: 'Hello!',
+                                   sample_attributes_attributes: {
+                                       '0' => {
+                                           pos: '1', title: 'a string', required: '1', is_title: '1',
+                                           sample_attribute_type_id: @string_type.id, _destroy: '0' },
+                                       '1' => {
+                                           pos: '2', title: 'a sample', required: '1',
+                                           sample_attribute_type_id: linked_sample_type.id, linked_sample_type_id:@sample_type.id, _destroy: '0'
+                                       }
+                                   }
+      }
+    end
+    refute_nil sample_type=assigns(:sample_type)
+    assert_redirected_to sample_type_path(sample_type)
+    assert_equal 2, sample_type.sample_attributes.size
+    assert_equal 'a string', sample_type.sample_attributes.title_attributes.first.title
+    assert_equal 'a sample', sample_type.sample_attributes.last.title
+    assert sample_type.sample_attributes.last.sample_attribute_type.is_seek_sample?
+  end
+
   test 'should show sample_type' do
     get :show, id: @sample_type
     assert_response :success
@@ -159,6 +182,24 @@ class SampleTypesControllerTest < ActionController::TestCase
 
     assert_template :new
     assert_not_empty assigns(:sample_type).errors
+  end
+
+  test 'should show link to sample type for linked attribute' do
+    linked_type = Factory(:linked_sample_type)
+    linked_attribute = linked_type.sample_attributes.last
+
+    assert linked_attribute.sample_attribute_type.is_seek_sample?
+
+    sample_type_linked_to = linked_attribute.linked_sample_type
+    refute_nil sample_type_linked_to
+
+    get :show,id:linked_type.id
+
+    record_body
+    assert_select 'li',:text=>/patient \(#{linked_attribute.sample_attribute_type.title}/i do
+      assert_select 'a[href=?]',sample_type_path(sample_type_linked_to),text:sample_type_linked_to.title
+    end
+
   end
 
   private
