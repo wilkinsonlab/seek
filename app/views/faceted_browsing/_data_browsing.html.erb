@@ -10,8 +10,9 @@
 
      #generate exhibit_items
      objects.each do |object|
-       exhibit_item = exhibit_item_for object, facets_for_object
-       exhibit_items << exhibit_item
+       exhibit_items <<  Rails.cache.fetch("exhibit_#{object.cache_key}") do
+        exhibit_item_for object, facets_for_object
+       end
      end
   %>
 
