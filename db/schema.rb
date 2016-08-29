@@ -356,11 +356,6 @@ ActiveRecord::Schema.define(:version => 20160531141452) do
     t.integer "event_id"
   end
 
-  create_table "data_files_openbis_samples", :id => false, :force => true do |t|
-    t.integer "data_file_id"
-    t.integer "openbis_sample_id"
-  end
-
   create_table "data_files_projects", :id => false, :force => true do |t|
     t.integer "project_id"
     t.integer "data_file_id"
@@ -943,38 +938,6 @@ ActiveRecord::Schema.define(:version => 20160531141452) do
   end
 
   add_index "oauth_sessions", ["user_id"], :name => "index_oauth_sessions_on_user_id"
-
-  create_table "openbis_sample_auth_lookup", :id => false, :force => true do |t|
-    t.integer "user_id"
-    t.integer "asset_id"
-    t.boolean "can_view"
-    t.boolean "can_manage"
-    t.boolean "can_edit"
-    t.boolean "can_download"
-    t.boolean "can_delete",   :default => false
-  end
-
-  create_table "openbis_samples", :force => true do |t|
-    t.string   "title"
-    t.text     "description"
-    t.string   "perm_id"
-    t.datetime "last_sync"
-    t.integer  "policy_id"
-    t.string   "contributor_type"
-    t.integer  "contributor_id"
-    t.string   "uuid"
-    t.datetime "last_used_at"
-    t.text     "openbis_json",     :limit => 16777215
-    t.integer  "assay_id"
-    t.string   "first_letter"
-    t.datetime "created_at",                           :null => false
-    t.datetime "updated_at",                           :null => false
-  end
-
-  create_table "openbis_samples_projects", :id => false, :force => true do |t|
-    t.integer "project_id"
-    t.integer "openbis_sample_id"
-  end
 
   create_table "organisms", :force => true do |t|
     t.string   "title"
