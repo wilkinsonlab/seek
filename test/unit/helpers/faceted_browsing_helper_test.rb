@@ -82,7 +82,6 @@ class FacetedBrowsingHelperTest < ActionView::TestCase
     assert_equal "(Missing value)", exhibit_item['technology_type']
     assert_equal [df.created_at.year], exhibit_item['created_at']
     assert_equal df.creators.collect(&:name) + [df.contributor.person.name], exhibit_item['contributor']
-    assert_equal "(Missing value)", exhibit_item['tag']
 
   end
 
