@@ -37,8 +37,8 @@
 //= require easytabs
 //= require favourites
 //= require jquery-ui
-//= require bootstrap-tagsinput-fixed
-//= require bootstrap-typeahead-rails
+//= require typeahead
+//= require bootstrap-tagsinput
 //= require bootstrap-multiselect
 //= require tags_input
 //= require objects_input
