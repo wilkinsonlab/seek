@@ -215,6 +215,11 @@ GEM
       timers (~> 4.0.0)
     childprocess (0.5.6)
       ffi (~> 1.0, >= 1.0.11)
+    citeproc (1.0.4)
+      namae (~> 0.8)
+    citeproc-ruby (1.1.4)
+      citeproc (>= 1.0.4, < 2.0)
+      csl (~> 1.4)
     climate_control (0.0.3)
       activesupport (>= 3.0)
     cocaine (0.5.7)
@@ -238,6 +243,10 @@ GEM
       thor (~> 0.19.1)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
+    csl (1.4.5)
+      namae (~> 0.7)
+    csl-styles (1.0.1.7)
+      csl (~> 1.0)
     curb (0.8.8)
     daemons (1.1.9)
     database_cleaner (1.4.1)
@@ -418,6 +427,7 @@ GEM
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     mysql2 (0.3.18)
+    namae (0.11.0)
     nenv (0.2.0)
     net-http-digest_auth (1.4)
     net-http-persistent (2.9.4)
@@ -489,6 +499,7 @@ GEM
       rails-assets-jquery (>= 1.11.0)
     rails-assets-bootstrap-tagsinput (0.8.0)
       rails-assets-jquery (~> 2.1.1)
+    rails-assets-clipboard (1.5.12)
     rails-assets-jquery (2.1.4)
     rails-assets-typeahead.js (0.10.5)
       rails-assets-jquery (>= 1.7)
@@ -792,11 +803,14 @@ DEPENDENCIES
   bundler (>= 1.8.4)
   calendar_date_select!
   cancan
+  citeproc (~> 1.0.4)
+  citeproc-ruby (~> 1.1.4)
   cocaine
   colorize (= 0.7.4)
   convert_office!
   country-select
   coveralls
+  csl-styles (~> 1.0.1.7)
   daemons
   database_cleaner
   datacite_doi_ify (~> 1.1.0)
@@ -849,6 +863,7 @@ DEPENDENCIES
   rails (= 3.2.22)
   rails-assets-bootstrap-multiselect (~> 0.9.13)!
   rails-assets-bootstrap-tagsinput (~> 0.8.0)!
+  rails-assets-clipboard (~> 1.5.12)!
   rails-assets-typeahead.js (~> 0.10.4)!
   rails_autolink
   rails_best_practices

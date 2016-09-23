@@ -106,12 +106,17 @@ gem 'seedbank'
 
 gem 'rspec-rails'
 
+gem 'citeproc-ruby', '~> 1.1.4'
+gem 'citeproc', '~> 1.0.4'
+gem 'csl-styles', '~> 1.0.1.7'
+
 # javascript assets from https://rails-assets.org
 gem 'bundler', '>= 1.8.4'
 source 'https://rails-assets.org' do
   gem 'rails-assets-bootstrap-multiselect', '~> 0.9.13'
   gem 'rails-assets-bootstrap-tagsinput', '~> 0.8.0'
   gem 'rails-assets-typeahead.js', '~> 0.10.4'
+  gem 'rails-assets-clipboard', '~> 1.5.12'
 end
 
 group :assets do
