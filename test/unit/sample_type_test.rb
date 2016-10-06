@@ -124,7 +124,15 @@ class SampleTypeTest < ActiveSupport::TestCase
   end
 
   test 'controlled vocab sample type validate_value' do
+    vocab = Factory(:apples_sample_controlled_vocab)
+    assert vocab.includes_term?('Granny Smith')
+    assert_equal 4,vocab.sample_controlled_vocab_terms.count
     type = Factory(:apples_controlled_vocab_sample_type)
+    type.sample_attributes.first.sample_controlled_vocab=vocab
+    type.sample_attributes.first.save!
+    assert type.valid?
+    assert_equal 4,type.sample_attributes.first.sample_controlled_vocab.sample_controlled_vocab_terms.count
+
     assert type.validate_value?('apples', 'Granny Smith')
     refute type.validate_value?('apples', 'Orange')
     refute type.validate_value?('apples', 1)
@@ -311,11 +319,11 @@ class SampleTypeTest < ActiveSupport::TestCase
     refute type.valid?
     type.fix_up_controlled_vocabs
     assert_nil type.sample_attributes[0].sample_controlled_vocab
-    refute type.sample_attributes[0].sample_attribute_type.is_controlled_vocab?
+    refute type.sample_attributes[0].sample_attribute_type.controlled_vocab?
     assert_nil type.sample_attributes[1].sample_controlled_vocab
-    refute type.sample_attributes[1].sample_attribute_type.is_controlled_vocab?
+    refute type.sample_attributes[1].sample_attribute_type.controlled_vocab?
     refute_nil type.sample_attributes[2].sample_controlled_vocab
-    assert type.sample_attributes[2].sample_attribute_type.is_controlled_vocab?
+    assert type.sample_attributes[2].sample_attribute_type.controlled_vocab?
   end
 
   test 'can edit' do
@@ -333,7 +341,7 @@ class SampleTypeTest < ActiveSupport::TestCase
     assert_equal 'patient', type.sample_attributes.last.title
 
     assert_equal 'String', type.sample_attributes.first.sample_attribute_type.base_type
-    assert type.sample_attributes.last.sample_attribute_type.is_seek_sample?
+    assert type.sample_attributes.last.sample_attribute_type.seek_sample?
   end
 
   test 'can delete' do

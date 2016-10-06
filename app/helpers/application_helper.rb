@@ -543,8 +543,6 @@ module ApplicationHelper
      Study=>"You cannot delete this #{I18n.t('study')}. It might be published or it has #{I18n.t('assays.assay').pluralize} associated with it.",
      Investigation=>"You cannot delete this #{I18n.t('investigation')}. It might be published or it has #{I18n.t('study').pluralize} associated with it." ,
      Strain=>"You cannot delete this Strain. It might be published or it has #{I18n.t('biosamples.sample_parent_term').pluralize}/Samples associated with it or you are not authorized.",
-     DeprecatedSpecimen=>"You cannot delete this #{I18n.t 'biosamples.sample_parent_term'}. It might be published or it has Samples associated with it or you are not authorized.",
-     DeprecatedSample=>"You cannot delete this Sample. It might be published or it has #{I18n.t('assays.assay').pluralize} associated with it or you are not authorized.",
      Project=>"You cannot delete this #{I18n.t 'project'}. It may have people associated with it.",
      Institution=>"You cannot delete this Institution. It may have people associated with it.",
      SampleType=>"You cannot delete this Sample Type, is may have Samples associated with it",
@@ -571,8 +569,25 @@ module ApplicationHelper
     resource
   end
 
-  def klass_from_controller controller_name
+  #returns the class associated with the controller, e.g. DataFile for the data_files
+  #
+  def klass_from_controller controller_name=controller_name
     controller_name.singularize.camelize.constantize
+  end
+
+  #returns the count of the total visible items, and also the count of the all items, according to controller_name
+  # primarily used for the metrics on the item index page
+  def resource_count_stats
+    klass = klass_from_controller(controller_name)
+    full_total = klass.count
+    if klass.authorization_supported?
+      visible_total = klass.all_authorized_for("view").count
+    elsif klass.kind_of?(Person) && Seek::Config.is_virtualliver && User.current_user.nil?
+      visible_total = 0
+    else
+      visible_total = klass.count
+    end
+    return visible_total,full_total
   end
 
   def describe_visibility(model)
