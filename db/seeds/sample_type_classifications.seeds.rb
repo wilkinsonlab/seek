@@ -1,0 +1,2 @@
+SampleTypeClassification.find_or_create_by_title('Biological sample', ontology_term:'http://www.mygrid.org.uk/ontology/JERMOntology#Biological_entity')
+SampleTypeClassification.find_or_create_by_title('Data sample', ontology_term:'http://www.mygrid.org.uk/ontology/JERMOntology#Data_sample')

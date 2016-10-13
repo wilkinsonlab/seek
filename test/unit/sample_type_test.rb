@@ -502,6 +502,14 @@ class SampleTypeTest < ActiveSupport::TestCase
     assert_equal stc.ontology_term,type.classification_term
     assert_equal stc, type.sample_type_classification
 
+    #blank sets to nil
+    type.classification_term=""
+    assert_nil type.sample_type_classification
+
+    type.classification_term=nil
+    assert_nil type.sample_type_classification
+
+
     assert_raise Exception do
       type.classification_term='gobbledygook'
     end

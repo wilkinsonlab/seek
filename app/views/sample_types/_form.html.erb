@@ -16,6 +16,16 @@
       <%= f.text_area :description, :class=>"form-control", :rows => 5 -%>
     </div>
 
+    <div class="form-group">
+      <label>Classification</label>
+      
+      <%=
+          collection_select(:sample_type, :classification_term, SampleTypeClassification.all, :ontology_term, :title,
+                              {:include_blank => "Not specified"},
+          {:class => 'form-control'})
+      %>
+    </div>
+
     <%= render :partial => "projects/project_selector", :locals => { :resource => @sample_type } -%>
 
     <div class="form-group">

@@ -1,6 +1,7 @@
 class SampleType < ActiveRecord::Base
   attr_accessible :title, :uuid, :sample_attributes_attributes,
-                  :description, :uploaded_template, :project_ids, :tags
+                  :description, :uploaded_template, :project_ids, :tags,
+                  :classification_term
 
   searchable(auto_index: false) do
     text :attribute_search_terms
@@ -63,9 +64,13 @@ class SampleType < ActiveRecord::Base
   end
 
   def classification_term=term
-    stc=SampleTypeClassification.where(ontology_term: term).first
-    raise Exception.new("Classification Term #{term} not found") unless stc
-    self.sample_type_classification=stc
+    if term.blank?
+      classification=nil
+    else
+      classification=SampleTypeClassification.where(ontology_term: term).first
+      raise Exception.new("Classification Term #{term} not found") unless classification
+    end
+    self.sample_type_classification=classification
   end
 
   def tags= tags
