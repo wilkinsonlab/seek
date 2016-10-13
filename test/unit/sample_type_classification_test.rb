@@ -27,12 +27,17 @@ class SampleTypeClassificationTest < ActiveSupport::TestCase
     stc.save!
 
     #now check the title must be unique
-    stc = SampleTypeClassification.new title:'fish',ontology_term:'bob:111'
+    stc = SampleTypeClassification.new title:'fish',ontology_term:'fred:111'
 
     refute stc.valid?
     stc.title='frog'
 
     assert stc.valid?
+
+    #ontology term must also be unique
+    stc.ontology_term='bob:111'
+    refute stc.valid?
+
 
   end
 
