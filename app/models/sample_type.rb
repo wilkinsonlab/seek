@@ -26,6 +26,8 @@ class SampleType < ActiveRecord::Base
 
   has_many :linked_sample_attributes, class_name: 'SampleAttribute', foreign_key: 'linked_sample_type_id'
 
+  belongs_to :sample_type_classification
+
   validates :title, presence: true
 
   validate :validate_one_title_attribute_present, :validate_attribute_title_unique
@@ -53,6 +55,11 @@ class SampleType < ActiveRecord::Base
         attribute.sample_controlled_vocab = nil
       end
     end
+  end
+
+  #the ontology term for the sample type classification
+  def classification_term
+    sample_type_classification.try(:ontology_term)
   end
 
   def tags= tags

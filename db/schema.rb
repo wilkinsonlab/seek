@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20161011101739) do
+ActiveRecord::Schema.define(:version => 20161013101350) do
 
   create_table "activity_logs", :force => true do |t|
     t.string   "action"
@@ -1356,15 +1356,21 @@ ActiveRecord::Schema.define(:version => 20161011101739) do
     t.string   "first_letter", :limit => 1
   end
 
+  create_table "sample_type_classifications", :force => true do |t|
+    t.string "title"
+    t.string "ontology_term"
+  end
+
   create_table "sample_types", :force => true do |t|
     t.string   "title"
     t.string   "uuid"
-    t.datetime "created_at",                                        :null => false
-    t.datetime "updated_at",                                        :null => false
+    t.datetime "created_at",                                                    :null => false
+    t.datetime "updated_at",                                                    :null => false
     t.integer  "content_blob_id"
-    t.string   "first_letter",      :limit => 1
+    t.string   "first_letter",                  :limit => 1
     t.text     "description"
-    t.boolean  "uploaded_template",              :default => false
+    t.boolean  "uploaded_template",                          :default => false
+    t.integer  "sample_type_classification_id"
   end
 
   create_table "samples", :force => true do |t|

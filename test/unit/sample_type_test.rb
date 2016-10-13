@@ -480,4 +480,18 @@ class SampleTypeTest < ActiveSupport::TestCase
     type = SampleType.find(type.id)
     assert_equal ["fish","sparrow"],type.tags.sort
   end
+
+  test 'classification association' do
+    type = Factory(:simple_sample_type)
+    assert_nil type.sample_type_classification
+    assert_nil type.classification_term
+
+    stc=Factory(:material_sample_type_classification)
+    type.sample_type_classification=stc
+    type.save!
+    assert_equal stc.ontology_term,type.classification_term
+
+    stc.reload
+    assert_equal [type],stc.sample_types
+  end
 end

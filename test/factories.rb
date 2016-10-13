@@ -1312,3 +1312,8 @@ Factory.define(:linked_sample_type, :parent=>:sample_type) do |f|
     type.sample_attributes << Factory.build(:sample_sample_attribute, title:'patient', linked_sample_type: Factory(:patient_sample_type),:required=>true, :sample_type => type)
   end
 end
+
+Factory.define(:material_sample_type_classification, :class=>SampleTypeClassification) do |f|
+  f.title 'Material type'
+  f.ontology_term 'http://www.mygrid.org.uk/ontology/JERMOntology#Material_entity'
+end
