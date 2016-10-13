@@ -62,6 +62,12 @@ class SampleType < ActiveRecord::Base
     sample_type_classification.try(:ontology_term)
   end
 
+  def classification_term=term
+    stc=SampleTypeClassification.where(ontology_term: term).first
+    raise Exception.new("Classification Term #{term} not found") unless stc
+    self.sample_type_classification=stc
+  end
+
   def tags= tags
     tag_annotations(tags, 'sample_type_tags')
   end

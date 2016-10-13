@@ -493,5 +493,19 @@ class SampleTypeTest < ActiveSupport::TestCase
 
     stc.reload
     assert_equal [type],stc.sample_types
+
+    #can associate using the term
+    type = Factory(:simple_sample_type)
+    assert_nil type.sample_type_classification
+    assert_nil type.classification_term
+    type.classification_term=stc.ontology_term
+    assert_equal stc.ontology_term,type.classification_term
+    assert_equal stc, type.sample_type_classification
+
+    assert_raise Exception do
+      type.classification_term='gobbledygook'
+    end
+
+
   end
 end
