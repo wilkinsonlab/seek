@@ -39,7 +39,6 @@ SEEK::Application.configure do
   Seek::Config.default :tagline_prefix, 'Find, share and exchange <b>Data</b>, <b>Models</b> and <b>Processes</b> within the'
   Seek::Config.default :publish_button_enabled, true
   Seek::Config.default :auth_lookup_enabled,true
-  Seek::Config.default :sample_parser_enabled,false
   Seek::Config.default :external_search_enabled, true
   Seek::Config.default :project_browser_enabled,false
   Seek::Config.default :experimental_features_enabled,false
@@ -83,7 +82,7 @@ SEEK::Application.configure do
   Seek::Config.default :header_tagline_text_enabled, true
 
 #time in minutes that the feeds on the front page are cached for
-  Seek::Config.default :home_feeds_cache_timeout,2
+  Seek::Config.default :home_feeds_cache_timeout,30
 # Branding
   Seek::Config.default :project_name,'FAIRDOM'
   Seek::Config.default :project_type,''
