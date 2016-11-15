@@ -2,6 +2,9 @@ FROM ruby:2.1
 
 MAINTAINER Stuart Owen <orcid.org/0000-0003-2130-0865>, Finn Bacall
 
+ENV APP_DIR /seek
+ENV RAILS_ENV=production
+
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends libssl-dev build-essential git libreadline-dev \
             libxml++2.6-dev openjdk-7-jdk libsqlite3-dev sqlite3 libcurl4-gnutls-dev \
@@ -11,9 +14,9 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-ENV RAILS_ENV=production
+RUN mkdir -p $APP_DIR
+
+WORKDIR $APP_DIR
 
 # Bundle install throw errors if Gemfile has been modified since Gemfile.lock
 COPY Gemfile* ./
@@ -21,33 +24,25 @@ RUN bundle config --global frozen 1 && \
     bundle install 
 
 # App code (picky about what gets copied to make caching of the assets:precompile more likely)
-COPY Rakefile config.ru ./
-COPY app app
-COPY config config
-COPY db db
-COPY lib lib
-COPY public public
-COPY spec spec
-COPY script script
-COPY solr solr
-COPY vendor vendor
+COPY . .
 
 # SQLite Database (for asset compilation)
-RUN cp config/database.sqlite.yml config/database.yml && \
+RUN mkdir sqlite3-db && \
+    cp docker/database.docker.sqlite3.yml config/database.yml && \
     bundle exec rake db:setup
+
 RUN bundle exec rake assets:precompile
 
 # Docker specific configs
-COPY docker docker
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 # Cleanup
 RUN rm -rf /tmp/* /var/tmp/*
 
 # Network
-EXPOSE 80
+EXPOSE 3000
 
 # Shared
-VOLUME ["/usr/src/app/filestore"]
+VOLUME ["/seek/filestore", "/seek/sqlite3-db"]
 
 CMD ["docker/entrypoint.sh"]

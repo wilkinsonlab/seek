@@ -41,11 +41,13 @@ fi
 
 # Start Rails
 echo "STARTING SEEK"
-bundle exec rails server -d
+bundle exec rails server -p 2000 -d
 
 # Workers
 echo "STARTING WORKERS"
 bundle exec rake seek:workers:start &
+
+tail -f log/production.log &
 
 echo "STARTING NGINX"
 nginx -g 'daemon off;'
