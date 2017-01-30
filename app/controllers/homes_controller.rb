@@ -1,5 +1,6 @@
 class HomesController < ApplicationController
 
+  include Roar::Rails::ControllerAdditions
 
   before_filter :redirect_to_sign_up_when_no_user
   before_filter :login_required, :only=>[:feedback,:send_feedback]
@@ -9,6 +10,8 @@ class HomesController < ApplicationController
   def index
     respond_with do |format|
       format.html { render :seek_template=>:index }
+      format.json {o = Object.new
+                   render :json => o.extend(HomeRepresenter)}
     end
   end
 

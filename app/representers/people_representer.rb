@@ -2,5 +2,11 @@
 
     include Representable::JSON::Collection
 
-    items extend:PersonStubRepresenter, class: Person
+    include BaseRepresenter
+
+    items extend: StubRepresenter, class: Person, wrap: false
+
+    def items
+      ["Fred"]
+    end
   end

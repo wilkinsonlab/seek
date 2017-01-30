@@ -77,7 +77,7 @@ class PeopleController < ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml
-      format.json {render :json => @people.extend(PeopleRepresenter) }
+      format.json {render :json => @people.collect {|p| url_for p} }
     end
   end
 

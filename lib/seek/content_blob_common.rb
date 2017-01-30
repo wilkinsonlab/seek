@@ -79,6 +79,7 @@ module Seek
         begin
           data_hash = downloader.get_remote_data @content_blob.url
           filename = get_filename data_hash[:filename], @content_blob.original_filename
+          puts filename
           send_file data_hash[:data_tmp_path], :filename => filename, :type => data_hash[:content_type] || @content_blob.content_type, :disposition => 'attachment'
         rescue Exception=>e
           error_message = "There is a problem downloading this file. #{e}"
