@@ -11,7 +11,6 @@ class Assay < ActiveRecord::Base
   has_one :investigation, through: :study
   has_many :projects, through: :investigation, uniq: true
 
-
   #needs to before acts_as_isa - otherwise auto_index=>false is overridden by Seek::Search::CommonFields
   searchable(:auto_index=>false) do
     text :organism_terms, :assay_type_label,:technology_type_label
@@ -55,10 +54,6 @@ class Assay < ActiveRecord::Base
   attr_reader :pending_related_assets
 
   alias_attribute :contributor, :owner
-
-  def project_ids
-    projects.map(&:id)
-  end
 
   def default_contributor
     User.current_user.try :person

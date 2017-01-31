@@ -43,10 +43,6 @@ class Study < ActiveRecord::Base
     related_data_files + related_sops + related_models + related_publications
   end
 
-  def project_ids
-    projects.map(&:id)
-  end
-
   def state_allows_delete? *args
     assays.empty? && super
   end
@@ -57,8 +53,5 @@ class Study < ActiveRecord::Base
 
     return new_object
   end
-
-
-
 
 end
