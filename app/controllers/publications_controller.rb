@@ -410,8 +410,6 @@ class PublicationsController < ApplicationController
     result = nil
     @error = nil
     if pubmed_id
-      puts "Pubmed id is " + pubmed_id
-      gets
       begin
         result = Bio::MEDLINE.new(Bio::PubMed.efetch(pubmed_id).first).reference
         @error = result.error
