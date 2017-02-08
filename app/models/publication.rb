@@ -28,6 +28,12 @@ class Publication < ActiveRecord::Base
            :as => :other_object,
            :dependent => :destroy
 
+  VALID_DOI_REGEX = /\A(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?!["&\'<>])\S)+)\z/
+  VALID_PUBMED_REGEX = /\A[1-9][0-9]{0,7}\z/
+
+  validates :doi, format: { with: VALID_DOI_REGEX , message: "is invalid"}, :allow_nil => true, :allow_blank => true
+  validates :pubmed_id, format: {with: VALID_PUBMED_REGEX, message: "is invalid"}, :allow_nil => true, :allow_blank => true
+
   #validation differences between OpenSEEK and the VLN SEEK
   validates_uniqueness_of :pubmed_id , :allow_nil => true, :allow_blank => true, :if => "Seek::Config.is_virtualliver"
   validates_uniqueness_of :doi ,:allow_nil => true, :allow_blank => true, :if => "Seek::Config.is_virtualliver"
