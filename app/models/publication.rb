@@ -30,6 +30,7 @@ class Publication < ActiveRecord::Base
 
   VALID_DOI_REGEX = /\A(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?!["&\'<>])\S)+)\z/
   VALID_PUBMED_REGEX = /\A[1-9][0-9]{0,7}\z/
+# Note that the PubMed regex deliberately does not allow versions
 
   validates :doi, format: { with: VALID_DOI_REGEX , message: "is invalid"}, :allow_nil => true, :allow_blank => true
   validates :pubmed_id, format: {with: VALID_PUBMED_REGEX, message: "is invalid"}, :allow_nil => true, :allow_blank => true
