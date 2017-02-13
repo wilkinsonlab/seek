@@ -15,6 +15,7 @@ module Seek
 
     module Authorization
 
+
       def self.is_authorized?(action, thing, user=nil)
         authorized_as_creator?(action, thing, user) ||
             authorized_by_policy?(action, thing) ||

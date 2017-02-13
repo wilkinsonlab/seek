@@ -92,9 +92,9 @@ module ApplicationHelper
   end
 
   def authorized_list all_items, attribute, sort=true, max_length=75, count_hidden_items=false
-    items = all_items.select &:can_view?
+    items = all_items.select(&:can_view?)
     if Seek::Config.is_virtualliver
-      title_only_items = (all_items - items).select &:title_is_public?
+      title_only_items = (all_items - items).select(&:title_is_public?)
     else
       title_only_items = []
     end
@@ -245,7 +245,7 @@ module ApplicationHelper
     list_item = "<li>"
     if icon_type.downcase == "flag"
       list_item += flag_icon(item.country)
-    elsif icon_type == "data_file" || icon_type == "sop"
+    elsif icon_type == "sop"
       list_item += file_type_icon(item)
     else
       list_item += image_tag_for_key(icon_type.downcase, nil, icon_type.camelize, nil, "", false, size)
