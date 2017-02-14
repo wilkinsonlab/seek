@@ -39,7 +39,7 @@ class AdminsController < ApplicationController
     Seek::Config.events_enabled = string_to_boolean params[:events_enabled]
     Seek::Config.email_enabled = string_to_boolean params[:email_enabled]
     Seek::Config.pdf_conversion_enabled = string_to_boolean params[:pdf_conversion_enabled]
-    #Seek::Config.delete_asset_version_enabled = string_to_boolean params[:delete_asset_version_enabled]
+    # Seek::Config.delete_asset_version_enabled = string_to_boolean params[:delete_asset_version_enabled]
     Seek::Config.show_announcements = string_to_boolean params[:show_announcements]
     Seek::Config.programmes_enabled = string_to_boolean params[:programmes_enabled]
     Seek::Config.samples_enabled = string_to_boolean params[:samples_enabled]
@@ -54,10 +54,6 @@ class AdminsController < ApplicationController
 
     Seek::Config.support_email_address = params[:support_email_address]
 
-    Seek::Config.omniauth_enabled = string_to_boolean params[:omniauth_enabled]
-    Seek::Config.omniauth_user_create = string_to_boolean params[:omniauth_user_create]
-    Seek::Config.omniauth_user_activate = string_to_boolean params[:omniauth_user_activate]
-
     Seek::Config.solr_enabled = string_to_boolean params[:solr_enabled]
     Seek::Config.jws_enabled = string_to_boolean params[:jws_enabled]
     Seek::Config.jws_online_root = params[:jws_online_root]
@@ -69,10 +65,6 @@ class AdminsController < ApplicationController
     Seek::Config.exception_notification_enabled = string_to_boolean params[:exception_notification_enabled]
 
     Seek::Config.hide_details_enabled = string_to_boolean params[:hide_details_enabled]
-
-    Seek::Config.registration_disabled = string_to_boolean params[:registration_disabled]
-    Seek::Config.registration_disabled_description = params[:registration_disabled_description]
-
     Seek::Config.activation_required_enabled = string_to_boolean params[:activation_required_enabled]
 
     Seek::Config.google_analytics_tracker_id = params[:google_analytics_tracker_id]
@@ -275,7 +267,7 @@ class AdminsController < ApplicationController
         attribute_name = a.attribute.name
         a.destroy unless replacement_tags.include?(@tag)
         replacement_tags.each do |tag|
-          if annotatable.annotations_with_attribute_and_by_source(attribute_name, source).select { |an| an.value == tag }.blank?
+          if annotatable.annotations_with_attribute_and_by_source(attribute_name, source).select { |a| a.value == tag }.blank?
             new_annotation = Annotation.new attribute_name: attribute_name, value: tag, annotatable: annotatable, source: source
             new_annotation.save!
           end
@@ -521,7 +513,7 @@ class AdminsController < ApplicationController
       cl.run
       return nil
     rescue Cocaine::CommandNotFoundError => e
-      return 'The command to restart the background tasks could not be found!'
+      return 'The command the restart the background tasks could not be found!'
     rescue => e
       error =  e.message
       return error

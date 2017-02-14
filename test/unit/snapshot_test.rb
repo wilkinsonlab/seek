@@ -16,7 +16,7 @@ class SnapshotTest < ActiveSupport::TestCase
     @assay2 = Factory(:assay, :title => 'a2', :study => @study, :contributor => @investigation.contributor,
                       :policy => Factory(:downloadable_public_policy))
     @data_file = Factory(:data_file, :title => 'df1', :contributor => @investigation.contributor,
-                         :content_blobs => [Factory(:doc_content_blob, :original_filename=>"word.doc")],
+                         :content_blob => Factory(:doc_content_blob, :original_filename=>"word.doc"),
                          :policy => Factory(:downloadable_public_policy))
     @publication = Factory(:publication, :title => 'p1', :contributor => @investigation.contributor,
                            :policy => Factory(:downloadable_public_policy))
@@ -40,7 +40,7 @@ class SnapshotTest < ActiveSupport::TestCase
     assert_equal s1.content_blob.md5sum,s1.md5sum
     assert_equal s1.content_blob.sha1sum,s1.sha1sum
 
-    assert_match(/\b([a-f0-9]{40})\b/,s1.sha1sum)
+    assert_match /\b([a-f0-9]{40})\b/,s1.sha1sum
   end
 
   test 'can access snapshot metadata' do

@@ -5,6 +5,7 @@ module Seek
     # Monitors the number of bytes downloading and terminates
     #  if it exceeds a given limit.
     class HTTPStreamer
+
       REDIRECT_LIMIT = 10
 
       def initialize(url, options = {})
@@ -20,14 +21,14 @@ module Seek
       private
 
       def get_uri(uri, redirect_count, block)
-        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+        Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
           http.request(Net::HTTP::Get.new(uri)) do |response|
             if response.code == '200'
               begin_stream(response, block)
             elsif response.code == '301' || response.code == '302'
               follow_redirect(uri, response, redirect_count, block)
             else
-              fail BadResponseCodeException.new(response)
+              raise BadResponseCodeException.new(response)
             end
           end
         end
@@ -38,7 +39,7 @@ module Seek
 
         response.read_body do |chunk|
           total_size += chunk.size
-          fail SizeLimitExceededException.new(total_size) if @size_limit && (total_size > @size_limit)
+          raise SizeLimitExceededException.new(total_size) if @size_limit && (total_size > @size_limit)
           block.call(chunk)
         end
 
@@ -47,7 +48,7 @@ module Seek
 
       def follow_redirect(uri, response, redirect_count, block)
         if redirect_count >= REDIRECT_LIMIT
-          fail RedirectLimitExceededException.new(redirect_count)
+          raise RedirectLimitExceededException.new(redirect_count)
         else
           new_uri = URI(response.header['location'])
           new_uri = URI(uri) + new_uri if new_uri.relative?
@@ -55,6 +56,7 @@ module Seek
           get_uri(new_uri, redirect_count + 1, block)
         end
       end
+
     end
 
     class RedirectLimitExceededException < Exception; end

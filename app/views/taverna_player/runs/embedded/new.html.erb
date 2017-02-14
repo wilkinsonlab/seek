@@ -30,7 +30,7 @@
     <%= render :partial => 'inputs_form', :locals => {:title => "Parameters", :inputs => @workflow_version.parameter_input_ports, :form => f} %>
   <% end %>
 
-  <div class="text-center">
+  <div style="text-align: center;">
     <%= f.submit 'Start Run', :id => "embedded-start-button" %>
   </div>
 <% end %>

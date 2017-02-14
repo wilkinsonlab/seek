@@ -40,7 +40,4 @@ SEEK::Application.configure do
 
   config.cache_store = :memory_store
 
-  #omniauth enable testing
-  OmniAuth.config.test_mode = true
-
 end
