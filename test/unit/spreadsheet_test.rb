@@ -36,7 +36,7 @@ class SpreadsheetTest < ActiveSupport::TestCase
 
 
     #Creates spreadsheet
-    assert !datafile.spreadsheet.nil?
+    refute datafile.spreadsheet.nil?
 
     assert_not_nil Rails.cache.fetch("blob_ss_xml-#{datafile.content_blob.cache_key}")
   end

@@ -191,7 +191,21 @@ SEEK::Application.routes.draw do
       get :isa_children
     end
     resources :people,:institutions,:assays,:studies,:investigations,:models,:sops,:data_files,:presentations,
-              :publications,:events,:samples,:specimens,:strains,:only=>[:index]
+              :publications,:events,:samples,:specimens,:strains,:search, :only=>[:index]
+    resources :openbis_endpoints do
+      member do
+        post :add_dataset
+      end
+      collection do
+        get :test_endpoint
+        get :fetch_spaces
+        get :show_item_count
+        get :show_items
+        get :show_dataset_files
+        post :refresh_browse_cache
+        get :browse
+      end
+    end
     resources :avatars do
       member do
         post :select
@@ -360,7 +374,6 @@ SEEK::Application.routes.draw do
       post :publish_related_items
       post :publish
       post :request_resource
-      post :convert_to_presentation
       post :update_annotations_ajax
       post :new_version
       #MERGENOTE - this is a destroy, and should be the destroy method, not post since we are not updating or creating something.

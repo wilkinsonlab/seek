@@ -20,7 +20,7 @@ gem 'rmagick', '2.15.2'
 gem 'rest-client'
 gem 'factory_girl', '2.6.4'
 gem 'rubyzip', '~> 1.1.4'
-gem 'bio', '~> 1.5.0'
+gem 'bio', '~> 1.5.1'
 gem 'sunspot_rails', '~>2.2.0'
 gem 'sunspot_solr', '~>2.2.0'
 gem 'savon', '1.1.0'
@@ -81,6 +81,8 @@ gem 'convert_office', git: 'https://github.com/SysMO-DB/convert_office.git', ref
 gem 'fleximage', git: 'https://github.com/SysMO-DB/fleximage.git', ref: 'bb1182f2716a9bf1b5d85e186d8bb7eec436797b'
 gem 'search_biomodel', '2.2.1', git: 'https://github.com/myGrid/search_biomodel.git'
 gem 'my_annotations', git: 'https://github.com/myGrid/annotations.git'
+
+gem 'openseek-api-gem', :git=>"https://github.com/FAIRdom/openseek-api-gem.git"
 
 gem 'taverna-t2flow'
 gem 'taverna-player', git: 'https://github.com/myGrid/taverna-player.git', branch: 'list-inputs', ref: 'b36e19c85b7a58d08a73aa418c0f838442c6dfd3'
