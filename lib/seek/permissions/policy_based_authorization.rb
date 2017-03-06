@@ -261,20 +261,20 @@ module Seek
       def update_lookup_table_for_all_users
         self.class.isolation_level(:repeatable_read) do #ensure it allows it see another worker may have inserted a record already
           self.class.transaction do
-            #check to see if an insert of update is needed, action used is arbitary
-            insert = lookup_count <= 2
-
             # Blank-out permissions first
-            if insert
+
+            # 1 entry for each user + anonymous
+            if lookup_count != (User.count + 1)
               sql = %(DELETE FROM #{self.class.lookup_table_name} WHERE asset_id=#{self.id})
               ActiveRecord::Base.connection.execute(sql)
 
               f = ActiveRecord::Base.connection.quote(false)
 
-              ([0] + User.pluck(:id)).each do |user_id|
+              # Insert in batches of 10
+              ([0] + User.pluck(:id)).each_slice(10) do |batch|
                 sql = %(INSERT INTO #{self.class.lookup_table_name}
                           (user_id, asset_id, can_view ,can_edit, can_download, can_manage, can_delete)
-                          VALUES (#{user_id}, #{self.id}, #{f}, #{f}, #{f}, #{f}, #{f});)
+                          VALUES #{batch.map { |user_id| "(#{user_id}, #{self.id}, #{f}, #{f}, #{f}, #{f}, #{f})" }.join(', ')};)
 
                 ActiveRecord::Base.connection.execute(sql)
               end
@@ -290,17 +290,20 @@ module Seek
                 sort_by { |p| Permission.precedence.index(p.contributor_type) * 100 - p.access_type }.
                 reverse
 
-            # Extract the individual member permissions from each FavouriteGroup and ensure they are also sorted by access_type
-            # Record the index where the favourite group permissions start
+            # Extract the individual member permissions from each FavouriteGroup and ensure they are also sorted by access_type:
+            # 1. Record the index where the FavouriteGroup permissions start
             fav_group_perm_index = sorted_permissions.index { |p| p.contributor_type == 'FavouriteGroup' }
             if fav_group_perm_index
-              # Split the favourite group permissions out
+              # 2. Split them out of the array.
               group_permissions, sorted_permissions = sorted_permissions.partition { |p| p.contributor_type == 'FavouriteGroup' }
 
-              group_members_permissions = FavouriteGroupMembership.includes(person: :user).where(favourite_group_id: group_permissions.map(&:contributor_id)).
+              # 3. Gather the FavouriteGroupMemberships for each of the FavouriteGroups referenced by the permissions.
+              group_members_permissions = FavouriteGroupMembership.includes(person: :user).
+                  where(favourite_group_id: group_permissions.map(&:contributor_id)).
                   order('access_type ASC').to_a
 
-              # Add them back in
+              # 4. Add them in to the array at the point where the FavouriteGroup permissions were removed
+              #    to preserve the order of precedence.
               sorted_permissions.insert(fav_group_perm_index, *group_members_permissions)
             end
 
@@ -310,7 +313,7 @@ module Seek
             end
 
             # Creator permissions
-            if is_downloadable? && creators.any?
+            if respond_to?(:creators) && creators.any?
               update_lookup([true, true, true, false, false], creators.includes(:user).map(&:user).compact, false)
             end
 
@@ -365,15 +368,9 @@ module Seek
         User.current_user
       end
 
-      #when having a sharing_scope policy of Policy::ALL_USERS it is concidered to have advanced permissions if any of the permissions do not relate to the projects associated with the resource (ISA or Asset))
-      #this is a temporary work-around for the loss of the custom_permissions flag when defining a pre-canned permission of shared with sysmo, but editable/downloadable within mhy project
-      #other policy sharing scopes are simpler, and are concidered to have advanced permissions if there are more than zero permissions defined
       def has_advanced_permissions?
-        if policy.sharing_scope==Policy::ALL_USERS
-          !(policy.permissions.collect{|p| p.contributor} - projects).empty?
-        else
-          policy.permissions.count > 0
-        end
+        # Project permissions don't count as "advanced"
+        (policy.permissions.collect(&:contributor) - projects).any?
       end
 
       def contributor_or_default_if_new

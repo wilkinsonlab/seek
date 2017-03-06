@@ -287,6 +287,14 @@ class SinglePublishingTest < ActionController::TestCase
   end
 
   test "do publish some" do
+
+    x=group_memberships(:one)
+    assert_equal people(:quentin_person),x.person
+    refute_nil x.work_group
+
+    person=people(:quentin_person)
+    refute person.projects.empty?
+
     df=data_with_isa
 
     assays=df.assays
@@ -372,7 +380,7 @@ class SinglePublishingTest < ActionController::TestCase
     assay = Factory :experimental_assay, :contributor=>df.contributor.person,
                     :study=>Factory(:study,:contributor=>df.contributor.person,
                                     :investigation=>Factory(:investigation,:contributor=>df.contributor.person))
-    other_persons_data_file = Factory :data_file, :contributor=>other_user, :project_ids=>other_user.person.projects.collect(&:id),:policy=>Factory(:policy, :sharing_scope => Policy::ALL_USERS, :access_type => Policy::VISIBLE)
+    other_persons_data_file = Factory :data_file, :contributor=>other_user, :project_ids=>other_user.person.projects.collect(&:id),:policy=>Factory(:policy, :access_type => Policy::VISIBLE)
     assay.associate(df)
     assay.associate(other_persons_data_file)
     assert !other_persons_data_file.can_manage?
