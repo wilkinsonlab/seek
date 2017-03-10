@@ -47,7 +47,7 @@ uri_type = SampleAttributeType.find_or_initialize_by_title('URI')
 uri_type.update_attributes(base_type: Seek::Samples::BaseType::STRING, regexp: URI.regexp.to_s, placeholder: 'http://www.example.com/123')
 
 ice_type = SampleAttributeType.find_or_initialize_by_title('ICE ID')
-ice_type.update_attributes(base_type: Seek::Samples::BaseType::ICE_ID, placeholder: '1234')
+ice_type.update_attributes(base_type: Seek::Samples::BaseType::ICE_ID, placeholder: 'SBC001234')
 
 puts "Seeded #{SampleAttributeType.count - count} sample attribute types"
 
