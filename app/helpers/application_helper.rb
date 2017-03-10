@@ -8,6 +8,7 @@ module ApplicationHelper
   include FancyMultiselectHelper
   include TavernaPlayer::RunsHelper
   include Recaptcha::ClientHelper
+  include VersionHelper
 
 
   def no_items_to_list_text
@@ -69,6 +70,17 @@ module ApplicationHelper
     end
 
     str.html_safe
+  end
+
+  # provide the block that shows the URL to the resource, including the version if it is a versioned resource
+  # label is based on the application name, for example <label>FAIRDOMHUB ID: </label>
+  def persistent_resource_id resource
+    url = polymorphic_url(resource)
+    content_tag :p, class: :id do
+      content_tag(:label) do
+        "#{Seek::Config.application_name} ID: "
+      end + " " + link_to(url, url)
+    end
   end
 
   def show_title title
@@ -189,12 +201,7 @@ module ApplicationHelper
 
   #selection of assets for new asset gadget
   def new_creatable_selection_list
-    creatable_options = Seek::Util.user_creatable_types.collect { |c| [c.name.underscore.humanize, url_for({:controller => c.name.underscore.pluralize, :action => 'new'})] }
-    if Seek::Config.sample_parser_enabled
-      creatable_options << ["#{t('data_file')} with sample",
-                            new_data_file_url(:page_title=>"#{t('data_file')} with Sample Parsing", :is_with_sample=>true)]
-    end
-    creatable_options
+    Seek::Util.user_creatable_types.collect { |c| [c.name.underscore.humanize, url_for({:controller => c.name.underscore.pluralize, :action => 'new'})] }
   end
 
   def is_nil_or_empty? thing
@@ -413,7 +420,7 @@ module ApplicationHelper
   end
 
   def set_parameters_for_sharing_form object=nil
-    object ||= eval "@#{controller_name.singularize}"
+    object ||= resource_for_controller
     policy = nil
     policy_type = ""
 
@@ -468,9 +475,7 @@ module ApplicationHelper
 
   def resource_tab_item_name resource_type,pluralize=true
     resource_type = resource_type.singularize
-    if resource_type == "Speciman"
-      result = t('biosamples.sample_parent_term')
-    elsif resource_type == "Assay"
+    if resource_type == "Assay"
       result = t('assays.assay')
     else
       translated_resource_type = translate_resource_type(resource_type)
@@ -481,9 +486,7 @@ module ApplicationHelper
 
   def internationalized_resource_name resource_type,pluralize=true
     resource_type = resource_type.singularize
-    if resource_type == "Speciman"
-      result = I18n.t('biosamples.sample_parent_term')
-    elsif resource_type == "Assay"
+    if resource_type == "Assay"
       result = I18n.t('assays.assay')
     elsif resource_type == "TavernaPlayer::Run"
       result = "Run"
@@ -530,12 +533,10 @@ module ApplicationHelper
     {Assay=>"You cannot delete this #{I18n.t('assays.assay')}. It might be published or it has items associated with it.",
      Study=>"You cannot delete this #{I18n.t('study')}. It might be published or it has #{I18n.t('assays.assay').pluralize} associated with it.",
      Investigation=>"You cannot delete this #{I18n.t('investigation')}. It might be published or it has #{I18n.t('study').pluralize} associated with it." ,
-     Strain=>"You cannot delete this Strain. It might be published or it has #{I18n.t('biosamples.sample_parent_term').pluralize}/Samples associated with it or you are not authorized.",
-     DeprecatedSpecimen=>"You cannot delete this #{I18n.t 'biosamples.sample_parent_term'}. It might be published or it has Samples associated with it or you are not authorized.",
-     DeprecatedSample=>"You cannot delete this Sample. It might be published or it has #{I18n.t('assays.assay').pluralize} associated with it or you are not authorized.",
+     Strain=>"You cannot delete this Strain. Samples associated with it or you are not authorized.",
      Project=>"You cannot delete this #{I18n.t 'project'}. It may have people associated with it.",
      Institution=>"You cannot delete this Institution. It may have people associated with it.",
-     SampleType=>"You cannot delete this Sample Type, is may have Samples associated with it",
+     SampleType=>"You cannot delete this Sample Type, it may have Samples associated with it or have another Sample Type linked to it",
      SampleControlledVocab=>"You can delete this Controlled Vocabulary, it may be associated with a Sample Type"
     }
   end
@@ -559,8 +560,30 @@ module ApplicationHelper
     resource
   end
 
-  def klass_from_controller controller_name
+  #returns the class associated with the controller, e.g. DataFile for data_files
+  #
+  def klass_from_controller controller_name=controller_name
     controller_name.singularize.camelize.constantize
+  end
+
+  #returns the instance for the resource for the controller, e.g @data_file for data_files
+  def resource_for_controller controller_name=controller_name
+    eval "@#{controller_name.singularize}"
+  end
+
+  #returns the count of the total visible items, and also the count of the all items, according to controller_name
+  # primarily used for the metrics on the item index page
+  def resource_count_stats
+    klass = klass_from_controller(controller_name)
+    full_total = klass.count
+    if klass.authorization_supported?
+      visible_total = klass.all_authorized_for("view").count
+    elsif klass.kind_of?(Person) && Seek::Config.is_virtualliver && User.current_user.nil?
+      visible_total = 0
+    else
+      visible_total = klass.count
+    end
+    return visible_total,full_total
   end
 
   def describe_visibility(model)
@@ -590,11 +613,15 @@ module ApplicationHelper
     link_to text, path, html_options
   end
 
+  def using_docker?
+    Seek::Docker.using_docker?
+  end
+
   private  
   PAGE_TITLES={"home"=>"Home", "projects"=>I18n.t('project').pluralize,"institutions"=>"Institutions", "people"=>"People", "sessions"=>"Login","users"=>"Signup","search"=>"Search",
                "assays"=>I18n.t('assays.assay').pluralize.capitalize,"sops"=>I18n.t('sop').pluralize,"models"=>I18n.t('model').pluralize,"data_files"=>I18n.t('data_file').pluralize,
                "publications"=>"Publications","investigations"=>I18n.t('investigation').pluralize,"studies"=>I18n.t('study').pluralize,
-               "specimens"=>I18n.t('biosamples.sample_parent_term').pluralize,"samples"=>"Samples","strains"=>"Strains","organisms"=>"Organisms","biosamples"=>"Biosamples",
+               "samples"=>"Samples","strains"=>"Strains","organisms"=>"Organisms","biosamples"=>"Biosamples",
                "presentations"=>I18n.t('presentation').pluralize,"programmes"=>I18n.t('programme').pluralize,"events"=>I18n.t('event').pluralize,"help_documents"=>"Help"}
 end
 

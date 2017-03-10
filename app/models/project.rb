@@ -25,16 +25,21 @@ class Project < ActiveRecord::Base
 
   has_and_belongs_to_many :strains
   has_and_belongs_to_many :organisms
+  has_and_belongs_to_many :samples
+  has_and_belongs_to_many :sample_types
 
   has_many :work_groups, dependent: :destroy
   has_many :institutions, through: :work_groups, before_remove: :group_memberships_empty?
+  has_many :group_memberships, through: :work_groups
+  # OVERRIDDEN in Seek::ProjectHierarchy if Seek::Config.project_hierarchy_enabled
+  has_many :people, through: :group_memberships, order: 'last_name ASC', uniq: true
 
   has_many :admin_defined_role_projects
 
   belongs_to :programme
 
   attr_accessible :project_administrator_ids, :asset_gatekeeper_ids, :pal_ids, :asset_housekeeper_ids, :title, :programme_id, :description,
-                  :web_page, :institution_ids, :parent_id, :wiki_page, :organism_ids
+                  :web_page, :institution_ids, :parent_id, :wiki_page, :organism_ids, :default_license
 
   # for handling the assignment for roles
   attr_accessor :project_administrator_ids, :asset_gatekeeper_ids, :pal_ids, :asset_housekeeper_ids
@@ -42,10 +47,6 @@ class Project < ActiveRecord::Base
   after_save :handle_asset_gatekeeper_ids, if: '@asset_gatekeeper_ids'
   after_save :handle_pal_ids, if: '@pal_ids'
   after_save :handle_asset_housekeeper_ids, if: '@asset_housekeeper_ids'
-
-  #DEPRECATED
-  has_and_belongs_to_many :deprecated_specimens
-  has_and_belongs_to_many :deprecated_samples
 
   # FIXME: temporary handler, projects need to support multiple programmes
   def programmes
@@ -158,14 +159,6 @@ class Project < ActiveRecord::Base
     locations
   end
 
-  # OVERRIDDEN in Seek::ProjectHierarchy if Seek::Config.project_hierarchy_enabled
-  def people
-    # TODO: look into doing this with a scope or direct query
-    res = work_groups.collect(&:people).flatten.uniq.compact
-    # TODO: write a test to check they are ordered
-    res.sort_by { |a| (a.last_name.blank? ? a.name : a.last_name) }
-  end
-
   def studies
     investigations.collect(&:studies).flatten.uniq
   end
@@ -225,7 +218,7 @@ class Project < ActiveRecord::Base
   end
 
   def can_delete?(user = User.current_user)
-    user.nil? ? false : (user.is_admin? && work_groups.collect(&:people).flatten.empty?)
+    user && user.is_admin? && work_groups.collect(&:people).flatten.empty?
   end
 
   def lineage_ancestor_cannot_be_self

@@ -37,8 +37,8 @@
 //= require easytabs
 //= require favourites
 //= require jquery-ui
-//= require bootstrap-tagsinput-fixed
-//= require bootstrap-typeahead-rails
+//= require typeahead
+//= require bootstrap-tagsinput
 //= require bootstrap-multiselect
 //= require tags_input
 //= require objects_input
@@ -60,4 +60,6 @@
 //= require DataTables-1.10.11/dataTables.buttons
 //= require DataTables-1.10.11/buttons.bootstrap
 //= require samples
+//= require jstree
+//= require clipboard
 //= require_tree ./templates

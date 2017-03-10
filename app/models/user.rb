@@ -15,6 +15,7 @@ class User < ActiveRecord::Base
   has_many :presentations,:as=>:contributor
   has_many :events, :as => :contributor
   has_many :publications, :as => :contributor
+  has_many :samples, :as => :contributor
 
   has_many :investigations,:as=>:contributor
   has_many :studies,:as=>:contributor
@@ -24,9 +25,6 @@ class User < ActiveRecord::Base
   has_many :sweeps, :as => :contributor
 
   has_many :oauth_sessions, :dependent => :destroy
-
-  #DEPRECATED
-  has_many :deprecated_samples,:as=>:contributor
 
   #restful_authentication plugin generated code ...
   # Virtual attribute for the unencrypted password
@@ -68,6 +66,10 @@ class User < ActiveRecord::Base
   delegate :is_project_administrator?, to: :person, allow_nil: true
   delegate :is_admin_or_project_administrator?, to: :person, allow_nil: true
   delegate :is_programme_administrator?, to: :person, allow_nil: true
+
+  after_commit :queue_update_auth_table, on: :create
+
+  after_destroy :remove_from_auth_tables
 
   # related_#{type} are resources that user created
   RELATED_RESOURCE_TYPES = [:data_files,:models,:sops,:events,:presentations,:publications]
@@ -303,6 +305,15 @@ class User < ActiveRecord::Base
       return false
     end
   end
-    
-end
 
+  def queue_update_auth_table
+    AuthLookupUpdateJob.new.add_items_to_queue(self)
+  end
+
+  def remove_from_auth_tables
+    Seek::Util.authorized_types.each do |type|
+      ActiveRecord::Base.connection.execute("delete from #{type.lookup_table_name} where user_id=#{id}")
+    end
+  end
+
+end

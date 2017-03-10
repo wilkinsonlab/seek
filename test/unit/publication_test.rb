@@ -187,28 +187,45 @@ class PublicationTest < ActiveSupport::TestCase
 
   test "validation" do
     project = Factory :project
-    asset=Publication.new :title=>"fred",:projects=>[project],:doi=>"111"
+    asset=Publication.new :title=>"fred",:projects=>[project],:doi=>"10.1371/journal.pcbi.1002352"
     assert asset.valid?
 
     asset=Publication.new :title=>"fred",:projects=>[project],:pubmed_id=>"111"
     assert asset.valid?
 
     asset=Publication.new :title=>"fred",:projects=>[project]
-    assert !asset.valid?
+    assert asset.valid?
 
-    asset=Publication.new :projects=>[project],:doi=>"111"
+    asset=Publication.new :projects=>[project],:doi=>"10.1371/journal.pcbi.1002352"
     assert !asset.valid?
 
     as_virtualliver do
-      asset=Publication.new :title=>"fred",:doi=>"111"
+      asset=Publication.new :title=>"fred",:doi=>"10.1371/journal.pcbi.1002352"
       assert asset.valid?
     end
 
-    #cant have both a pubmed and doi
-    asset = Publication.new :title=>"bob",:doi=>"777",:projects=>[project]
+    #invalid DOI
+    asset = Publication.new :title=>"fred",:doi=>"10.1371",:projects=>[project]
+    assert !asset.valid?
+    asset = Publication.new :title=>"fred",:doi=>"bogus",:projects=>[project]
+    assert !asset.valid?
+    
+    #invalid pubmed
+    asset = Publication.new :title=>"fred",:pubmed_id =>0,:projects=>[project]
+    assert !asset.valid?
+
+    asset = Publication.new :title=>"fred2",:pubmed_id =>1234,:projects=>[project]
+    assert asset.valid?
+
+    asset = Publication.new :title=>"fred",:pubmed_id =>"bogus",:projects=>[project]
+    assert !asset.valid?
+    
+
+    #can have both a pubmed and doi
+    asset = Publication.new :title=>"bob",:doi=>"10.1371/journal.pcbi.1002352",:projects=>[project]
     assert asset.valid?
     asset.pubmed_id="999"
-    assert !asset.valid?
+    assert asset.valid?
     asset.doi=nil
     assert asset.valid?
   end
@@ -261,14 +278,14 @@ class PublicationTest < ActiveSupport::TestCase
          assert !pub.valid?
       end
 
-      pub=Publication.new(:title=>"test3",:doi=>"1234", :projects => [project1])
+      pub=Publication.new(:title=>"test3",:doi=>"10.1002/0470841559.ch1", :projects => [project1])
       assert pub.valid?
       assert pub.save
-      pub=Publication.new(:title=>"test4",:doi=>"1234", :projects => [project1])
+      pub=Publication.new(:title=>"test4",:doi=>"10.1002/0470841559.ch1", :projects => [project1])
       assert !pub.valid?
 
       as_virtualliver do
-        pub=Publication.new(:title => "test4", :doi => "1234", :projects => [Factory(:project)])
+        pub=Publication.new(:title => "test4", :doi => "10.1002/0470841559.ch1", :projects => [Factory(:project)])
         assert !pub.valid?
       end
 
@@ -280,9 +297,9 @@ class PublicationTest < ActiveSupport::TestCase
         pub=Publication.new(:title=>"test5",:pubmed_id=>"1234", :projects => [project1,project2])
         assert !pub.valid?
 
-        pub=Publication.new(:title=>"test5",:doi=>"1234", :projects => [project2])
+        pub=Publication.new(:title=>"test5",:doi=>"10.1002/0470841559.ch1", :projects => [project2])
         assert pub.valid?
-        pub=Publication.new(:title=>"test5",:doi=>"1234", :projects => [project1,project2])
+        pub=Publication.new(:title=>"test5",:doi=>"10.1002/0470841559.ch1", :projects => [project1,project2])
         assert !pub.valid?
       end
 
@@ -325,20 +342,20 @@ class PublicationTest < ActiveSupport::TestCase
   end
 
   def mock_crossref options
-    url= "http://www.crossref.org/openurl/"
+    url= "https://www.crossref.org/openurl/"
     params={}
     params[:format] = "unixref"
     params[:id] = "doi:"+options[:doi]
     params[:pid] = options[:email]
     params[:noredirect] = true
-    url = "http://www.crossref.org/openurl/?" + params.to_param
+    url = "https://www.crossref.org/openurl/?" + params.to_param
     file=options[:content_file]
     stub_request(:get,url).to_return(:body=>File.new("#{Rails.root}/test/fixtures/files/mocking/#{file}"))
 
   end
 
   def mock_pubmed options
-    url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+    url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     file=options[:content_file]
     stub_request(:post,url).to_return(:body=>File.new("#{Rails.root}/test/fixtures/files/mocking/#{file}"))
   end

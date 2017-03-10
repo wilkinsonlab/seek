@@ -1,8 +1,7 @@
-
 require 'acts_as_versioned_resource'
 require 'explicit_versioning'
 require 'title_trimmer'
-
+require 'datacite/acts_as_doi_mintable'
 
 class DataFile < ActiveRecord::Base
 
@@ -36,9 +35,10 @@ class DataFile < ActiveRecord::Base
   explicit_versioning(:version_column => "version") do
     include Seek::Data::DataFileExtraction
     include Seek::Data::SpreadsheetExplorerRepresentation
+    acts_as_doi_mintable(proxy: :parent)
     acts_as_versioned_resource
     acts_as_favouritable
-    
+
     has_one :content_blob,:primary_key => :data_file_id,:foreign_key => :asset_id,:conditions => Proc.new{["content_blobs.asset_version =? AND content_blobs.asset_type =?", version,parent.class.name]}
     
     has_many :studied_factors, :primary_key => "data_file_id", :foreign_key => "data_file_id", :conditions => Proc.new{["studied_factors.data_file_version =?", version]}
@@ -90,11 +90,6 @@ class DataFile < ActiveRecord::Base
          return true
      end
   end
-
-  #DEPRECATED
-  has_many :deprecated_sample_assets,:dependent=>:destroy,:as => :asset
-  has_many :deprecated_samples, :through => :sample_assets
-
 
   def relationship_type(assay)
     #FIXME: don't like this hardwiring to assay within data file, needs abstracting
@@ -228,7 +223,7 @@ class DataFile < ActiveRecord::Base
       sample.project_ids = self.project_ids
       sample.contributor = self.contributor
       sample.originating_data_file = self
-      sample.policy = self.policy.deep_copy
+      sample.policy = self.policy
       sample.save if sample.valid? && confirm
 
       extracted << sample

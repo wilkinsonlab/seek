@@ -12,6 +12,7 @@ class DataFilesControllerTest < ActionController::TestCase
   include RdfTestCases
   include SharingFormTestHelper
   include FunctionalAuthorizationTests
+  include MockHelper
 
   def setup
     login_as(:datafile_owner)
@@ -1349,7 +1350,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
 
-  test "explore logged as inline view" do
+  test "explore logged as inline_view" do
     data = Factory :small_test_spreadsheet_datafile,:policy=>Factory(:public_policy)
     assert_difference("ActivityLog.count") do
       get :explore,:id=>data
@@ -1741,6 +1742,16 @@ class DataFilesControllerTest < ActionController::TestCase
       assert_select "a[href=?]",data_file_path(df),:text=>df.title
       assert_select "a[href=?]",data_file_path(df2),:text=>df2.title,:count=>0
     end
+  end
+
+  test 'dont show resource count for nested route' do
+    df = Factory(:data_file,:policy=>Factory(:public_policy))
+    project = df.projects.first
+    df2 = Factory(:data_file,:policy=>Factory(:public_policy))
+    get :index,:project_id=>project.id
+    assert_response :success
+    assert_select '#resource-count-stats', :count=>0
+
   end
 
   test "filtered data files for non existent study" do
@@ -2200,7 +2211,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test 'can disambiguate sample type' do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     Factory(:string_sample_attribute_type, title:'String')
@@ -2210,7 +2221,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2218,7 +2229,7 @@ class DataFilesControllerTest < ActionController::TestCase
     sample_type.sample_attributes[1].sample_attribute_type = Factory(:datetime_sample_attribute_type)
     sample_type.save!
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2303,7 +2314,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test "can't extract from data file if no permissions" do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     another_person = Factory(:person)
     login_as(person)
 
@@ -2313,7 +2324,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template',:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2333,7 +2344,7 @@ class DataFilesControllerTest < ActionController::TestCase
 
 
   test 'strain samples successfully extracted from spreadsheet' do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     Factory(:string_sample_attribute_type, title:'String')
@@ -2343,7 +2354,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:strain_sample_data_content_blob)
     sample_type.build_attributes_from_template
     attribute_type = sample_type.sample_attributes.last
@@ -2361,7 +2372,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test 'extract from data file' do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     Factory(:string_sample_attribute_type, title:'String')
@@ -2371,7 +2382,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2399,7 +2410,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test 'extract from data file with multiple matching sample types redirects to selection page' do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     Factory(:string_sample_attribute_type, title:'String')
@@ -2409,7 +2420,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2417,7 +2428,7 @@ class DataFilesControllerTest < ActionController::TestCase
     sample_type.sample_attributes[1].sample_attribute_type = Factory(:datetime_sample_attribute_type)
     sample_type.save!
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2433,7 +2444,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test 'extract from data file queues job' do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     Factory(:string_sample_attribute_type, title:'String')
@@ -2443,7 +2454,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     #this is to force the full name to be 2 words, so that one row fails
@@ -2461,7 +2472,7 @@ class DataFilesControllerTest < ActionController::TestCase
   end
 
   test "can't extract from data file if samples already extracted" do
-    person = Factory(:person)
+    person = Factory(:project_administrator)
     login_as(person)
 
     data_file = Factory :data_file, content_blob: Factory(:sample_type_populated_template_content_blob),
@@ -2470,7 +2481,7 @@ class DataFilesControllerTest < ActionController::TestCase
     refute data_file.sample_template?
     assert_empty data_file.possible_sample_types
 
-    sample_type = SampleType.new title:'from template'
+    sample_type = SampleType.new title:'from template', uploaded_template: true,:project_ids=>[person.projects.first.id]
     sample_type.content_blob = Factory(:sample_type_template_content_blob)
     sample_type.build_attributes_from_template
     sample_type.save!
@@ -2487,7 +2498,113 @@ class DataFilesControllerTest < ActionController::TestCase
     assert flash[:error].include?('Already extracted')
   end
 
+  test "can get citation for data file with DOI" do
+    doi_citation_mock
+    data_file = Factory(:data_file, policy: Factory(:public_policy), doi: '10.5072/test')
+    login_as(data_file.contributor)
+
+    get :show, id: data_file
+    assert_response :success
+    assert_select '#snapshot-citation', text: /Bacall, F/
+  end
+
+  test 'resource count stats' do
+    Factory(:data_file,policy: Factory(:public_policy))
+    Factory(:data_file,policy: Factory(:private_policy))
+    total = DataFile.count
+    visible=DataFile.all_authorized_for(:view).count
+    assert_not_equal total, visible
+    assert_not_equal 0,total
+    assert_not_equal 0,visible
+    get :index
+    assert_response :success
+    assert_select '#resource-count-stats', :text=>/#{visible} Data files visible.*#{total}/
+  end
+
+  test 'delete with data file with extracted samples' do
+    login_as(Factory(:person))
+    df=nil
+
+    df = data_file_with_extracted_samples
+
+
+    assert_no_difference("DataFile.count") do
+      delete :destroy, :id => df.id
+    end
+    assert_redirected_to destroy_samples_confirm_data_file_path(df)
+
+    assert_difference("DataFile.count",-1) do
+      assert_difference("Sample.count",-4) do
+        delete :destroy, :id => df.id, destroy_extracted_samples:'1'
+      end
+    end
+
+    assert_redirected_to data_files_path
+
+
+    df = data_file_with_extracted_samples
+
+    assert_difference("DataFile.count",-1) do
+      assert_no_difference("Sample.count") do
+        delete :destroy, :id => df.id, destroy_extracted_samples:'0'
+      end
+    end
+
+    assert_redirected_to data_files_path
+  end
+
+  test 'extract samples confirmation' do
+    login_as(Factory(:person))
+    df = data_file_with_extracted_samples
+    assert df.can_delete?
+    get :destroy_samples_confirm,:id=>df.id
+    assert_response :success
+  end
+
+  test 'extract samples confirmation not accessible if not can_delete?' do
+    login_as(Factory(:person))
+    df = data_file_with_extracted_samples(Factory(:person).user)
+    refute df.can_delete?
+    get :destroy_samples_confirm,:id=>df.id
+    assert_redirected_to data_file_path(df)
+    refute_nil flash[:error]
+  end
+
+  test 'cannot upload new version if samples have been extracted' do
+    data_file = Factory(:data_file, contributor: User.current_user)
+    Factory(:sample, originating_data_file: data_file)
+
+    assert_no_difference('DataFile::Version.count') do
+      post :new_version, id: data_file.id, data_file: {}, content_blobs: [{ data: file_for_upload }],
+           revision_comment: 'This is a new revision'
+    end
+
+    assert_redirected_to data_file
+    assert flash[:error].downcase.include?('samples')
+  end
+
   private
+
+  def data_file_with_extracted_samples(contributor=User.current_user)
+    data_file = Factory :data_file, content_blob: Factory(:sample_type_populated_template_content_blob),
+                         policy: Factory(:private_policy), contributor: contributor
+    sample_type = SampleType.new title: 'from template',:project_ids=>[Factory(:project).id]
+    sample_type.content_blob = Factory(:sample_type_template_content_blob)
+    sample_type.build_attributes_from_template
+    disable_authorization_checks{sample_type.save!}
+
+    assert_difference("Sample.count",4) do
+      data_file.extract_samples(sample_type,true)
+      data_file.save!
+    end
+
+    data_file.reload
+
+    assert_equal 4, data_file.extracted_samples.count
+
+    data_file
+
+  end
 
   def mock_http
     stub_request(:get, "http://mockedlocation.com/a-piccy.png").to_return(:body => File.new("#{Rails.root}/test/fixtures/files/file_picture.png"), :status => 200, :headers=>{'Content-Type' => 'image/png'})

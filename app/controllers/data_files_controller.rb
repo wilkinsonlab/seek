@@ -6,7 +6,6 @@ class DataFilesController < ApplicationController
   include Seek::IndexPager
   include SysMODB::SpreadsheetExtractor
   include MimeTypesHelper
-  include Seek::DotGenerator
 
   include Seek::AssetsCommon
 
@@ -17,6 +16,7 @@ class DataFilesController < ApplicationController
   before_filter :xml_login_only, :only => [:upload_for_tool,:upload_from_email]
   before_filter :get_sample_type, :only => :extract_samples
   before_filter :check_already_extracted, :only => :extract_samples
+  before_filter :forbid_new_version_if_samples, :only => :new_version
 
   #has to come after the other filters
   include Seek::Publishing::PublishingCommon
@@ -25,6 +25,7 @@ class DataFilesController < ApplicationController
 
   include Seek::DataciteDoi
 
+  include Seek::IsaGraphExtensions
 
   def convert_to_presentation
     @data_file = DataFile.find params[:id]
@@ -56,6 +57,25 @@ class DataFilesController < ApplicationController
     @csv_data = spreadsheet_to_csv(open(@data_file.content_blob.filepath),sheet,true)
     respond_to do |format|
       format.html
+    end
+  end
+
+  def destroy
+    if @data_file.extracted_samples.any? && !params[:destroy_extracted_samples]
+      redirect_to destroy_samples_confirm_data_file_path(@data_file)
+    else
+      if params[:destroy_extracted_samples]=='1'
+        @data_file.extracted_samples.destroy_all
+      end
+      super
+    end
+  end
+
+  def destroy_samples_confirm
+    if @data_file.can_delete?
+      respond_to do |format|
+        format.html
+      end
     end
   end
     
@@ -265,16 +285,6 @@ class DataFilesController < ApplicationController
       end
     end
   end
-
-  def clear_population bio_samples
-      specimens = DeprecatedSpecimen.find_all_by_title bio_samples.instance_values["specimen_names"].values
-      samples = DeprecatedSample.find_all_by_title bio_samples.instance_values["sample_names"].values
-      samples.each do |s|
-        s.assays.clear
-        s.destroy
-      end
-      specimens.each &:destroy
-  end
   
   def matching_models
     #FIXME: should use the correct version
@@ -344,6 +354,8 @@ class DataFilesController < ApplicationController
 
   def confirm_extraction
     @samples, @rejected_samples = Seek::Samples::Extractor.new(@data_file).fetch.partition(&:valid?)
+    @sample_type=@samples.first.sample_type if @samples.any?
+    @sample_type||=@rejected_samples.first.sample_type if @rejected_samples.any?
 
     respond_to do |format|
       format.html
@@ -406,6 +418,15 @@ class DataFilesController < ApplicationController
   def check_already_extracted
     if @data_file.extracted_samples.any?
       flash[:error] = "Already extracted samples from this data file"
+      respond_to do |format|
+        format.html { redirect_to @data_file }
+      end
+    end
+  end
+
+  def forbid_new_version_if_samples
+    if @data_file.extracted_samples.any?
+      flash[:error] = "Cannot upload a new version if samples have been extracted"
       respond_to do |format|
         format.html { redirect_to @data_file }
       end

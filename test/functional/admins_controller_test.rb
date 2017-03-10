@@ -85,7 +85,7 @@ class AdminsControllerTest < ActionController::TestCase
   test 'string to boolean' do
     login_as(:quentin)
     post :update_features_enabled, :events_enabled => '1'
-    assert_equal true, Seek::Config.events_enabled
+    assert Seek::Config.events_enabled
   end
 
   test 'update visible tags and threshold' do
@@ -119,6 +119,14 @@ class AdminsControllerTest < ActionController::TestCase
     assert_equal 0, Seek::Config.default_all_visitors_access_type
     post :update_others, :default_all_visitors_access_type => '2'
     assert_equal 2, Seek::Config.default_all_visitors_access_type
+  end
+
+  test 'update permissions popup' do
+    login_as(:quentin)
+    Seek::Config.permissions_popup = Seek::Config::PERMISSION_POPUP_ALWAYS
+    assert_equal Seek::Config::PERMISSION_POPUP_ALWAYS, Seek::Config.permissions_popup
+    post :update_others, :permissions_popup => "#{Seek::Config::PERMISSION_POPUP_NEVER}"
+    assert_equal Seek::Config::PERMISSION_POPUP_NEVER, Seek::Config.permissions_popup
   end
 
   test 'invalid email address' do
@@ -159,7 +167,7 @@ class AdminsControllerTest < ActionController::TestCase
 
   test "get project content stats" do
     login_as(:quentin)
-    xml_http_request :get, :get_stats,{:id=>"contents"}
+    xml_http_request :get, :get_stats,{:id=>"content_stats"}
     assert_response :success
   end
 
@@ -212,6 +220,15 @@ class AdminsControllerTest < ActionController::TestCase
       assert_select "td > span[class='none_text']",:text=>/No date defined/,:count=>1
     end
 
+  end
+
+  test "storage usage stats" do
+    admin=Factory(:admin)
+    Factory(:rightfield_datafile)
+    Factory(:rightfield_annotated_datafile)
+    login_as(admin)
+    xml_http_request :get,:get_stats,{:id=>"storage_usage_stats"}
+    assert_response :success
   end
 
   test "update home page settings" do

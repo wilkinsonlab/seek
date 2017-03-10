@@ -4,9 +4,11 @@ class SampleControlledVocabsController < ApplicationController
   include Seek::IndexPager
   include Seek::AssetsCommon
 
+  before_filter :samples_enabled?
   before_filter :login_required, except: [:show, :index]
   before_filter :find_and_authorize_requested_item, except: [:index, :new, :create]
   before_filter :find_assets, only: :index
+  before_filter :auth_to_create, only: [:new, :create]
 
   def show
     respond_with(@sample_controlled_vocab)
@@ -27,7 +29,7 @@ class SampleControlledVocabsController < ApplicationController
 
     flash[:notice] = 'The sample controlled vocabulary was successfully created.' if @sample_controlled_vocab.save
     respond_with(@sample_controlled_vocab) do |format|
-      format.js {render layout: false, content_type: 'text/javascript'}
+      format.js { render layout: false, content_type: 'text/javascript' }
     end
   end
 

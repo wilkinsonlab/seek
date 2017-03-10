@@ -30,8 +30,8 @@ class PolicyTest < ActiveSupport::TestCase
     pol=Policy.private_policy
     assert_equal Policy::PRIVATE, pol.sharing_scope
     assert_equal Policy::NO_ACCESS, pol.access_type
-    assert_equal false,pol.use_whitelist
-    assert_equal false,pol.use_blacklist
+    assert !pol.use_whitelist
+    assert !pol.use_blacklist
     assert pol.permissions.empty?
   end
 
@@ -40,8 +40,8 @@ class PolicyTest < ActiveSupport::TestCase
       pol=Policy.default
       assert_equal Policy::PRIVATE, pol.sharing_scope
       assert_equal Policy::NO_ACCESS, pol.access_type
-      assert_equal false, pol.use_whitelist
-      assert_equal false, pol.use_blacklist
+      assert !pol.use_whitelist
+      assert !pol.use_blacklist
       assert pol.permissions.empty?
     end
   end
@@ -51,8 +51,8 @@ class PolicyTest < ActiveSupport::TestCase
       pol=Policy.default
       assert_blank pol.sharing_scope
       assert_blank pol.access_type
-      assert_equal false, pol.use_whitelist
-      assert_equal false, pol.use_blacklist
+      assert !pol.use_whitelist
+      assert !pol.use_blacklist
       assert pol.permissions.empty?
     end
   end
@@ -197,6 +197,38 @@ class PolicyTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  test 'policy not destroyed if still referenced by assets' do
+    policy = Factory(:public_policy)
+    sample_type = Factory(:strain_sample_type)
+    data_file = Factory(:strain_sample_data_file, policy: policy)
+    samples = data_file.extract_samples(sample_type, true).select(&:persisted?)
+    sample = samples.first
+
+    assert_equal sample.policy, data_file.policy
+
+    assert_no_difference('Policy.count') do
+      disable_authorization_checks { data_file.destroy }
+    end
+
+    assert_not_nil sample.reload.policy
+    assert_not_nil Policy.find_by_id(policy.id)
+  end
+
+  test 'policy destroyed when no longer referenced' do
+    policy = Factory(:public_policy)
+    sample_type = Factory(:strain_sample_type)
+    data_file = Factory(:strain_sample_data_file, policy: policy)
+    samples = data_file.extract_samples(sample_type, true).select(&:persisted?)
+
+    disable_authorization_checks { data_file.destroy }
+
+    assert_difference('Policy.count', -1) do
+      disable_authorization_checks { samples.each(&:destroy) }
+    end
+
+    assert_nil Policy.find_by_id(policy.id)
   end
 
 end

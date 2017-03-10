@@ -1,5 +1,5 @@
 class SampleAttributeType < ActiveRecord::Base
-  attr_accessible :base_type, :regexp, :title
+  attr_accessible :base_type, :regexp, :title, :placeholder
 
   validates :title, :base_type, :regexp, presence: true
   validate :validate_allowed_type, :validate_regular_expression
@@ -9,10 +9,8 @@ class SampleAttributeType < ActiveRecord::Base
 
   scope :primitive_string_types, where(base_type: 'String', regexp: '.*')
 
-  BASE_TYPES = %w(Integer Float String DateTime Date Text Boolean SeekStrain CV IceId)
-
   def validate_allowed_type
-    unless SampleAttributeType.allowed_base_types.include?(base_type)
+    unless Seek::Samples::BaseType.valid?(base_type)
       errors.add(:base_type, 'Not a valid base type')
     end
   end
@@ -29,8 +27,8 @@ class SampleAttributeType < ActiveRecord::Base
     self == self.class.default
   end
 
-  def validate_value?(value,additional_options={})
-    check_value_against_base_type(value,additional_options) && check_value_against_regular_expression(value)
+  def validate_value?(value, additional_options = {})
+    check_value_against_base_type(value, additional_options) && check_value_against_regular_expression(value)
   end
 
   def as_json(_options = nil)
@@ -48,27 +46,35 @@ class SampleAttributeType < ActiveRecord::Base
   end
 
   def regular_expression
-    /#{regexp}/
+    /#{regexp}/m
   end
 
   def check_value_against_regular_expression(value)
     match = regular_expression.match(value.to_s)
-    match && match.to_s == value.to_s
+    match && (match.to_s == value.to_s)
   end
 
-  def check_value_against_base_type(value,additional_options)
-    base_type_handler.validate_value?(value,additional_options)
+  def check_value_against_base_type(value, additional_options)
+    base_type_handler(additional_options).validate_value?(value)
   end
 
-  def pre_process_value(value)
-    base_type_handler.convert(value)
+  def pre_process_value(value, additional_options)
+    base_type_handler(additional_options).convert(value)
   end
 
-  def is_controlled_vocab?
-    base_type=="CV"
+  def controlled_vocab?
+    base_type == Seek::Samples::BaseType::CV
   end
 
-  def base_type_handler
-    Seek::Samples::AttributeTypeHandlers::AttributeTypeHandlerFactory.instance.for_base_type(base_type)
+  def seek_sample?
+    base_type == Seek::Samples::BaseType::SEEK_SAMPLE
+  end
+
+  def seek_strain?
+    base_type == Seek::Samples::BaseType::SEEK_STRAIN
+  end
+
+  def base_type_handler(additional_options)
+    Seek::Samples::AttributeTypeHandlers::AttributeTypeHandlerFactory.instance.for_base_type(base_type, additional_options)
   end
 end

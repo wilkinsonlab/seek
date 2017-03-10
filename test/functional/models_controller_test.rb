@@ -97,6 +97,8 @@ class ModelsControllerTest < ActionController::TestCase
   end
 
   test "should not download zip with only remote files" do
+    stub_request(:head, "http://www.abc.com").to_return(headers: { content_length: 500, content_type: 'text/plain' }, status: 200)
+
     model = Factory :model_2_remote_files, :title=>"this_model", :policy=>Factory(:public_policy), :contributor=>User.current_user
     assert_difference("ActivityLog.count") do
       get :download, :id => model.id
@@ -151,9 +153,9 @@ class ModelsControllerTest < ActionController::TestCase
   test "should contain only model assays " do
     login_as(:aaron)
     assay = assays(:metabolomics_assay)
-    assert_equal false, assay.is_modelling?
+    assert !assay.is_modelling?
     assay = assays(:modelling_assay_with_data_and_relationship)
-    assert_equal true, assay.is_modelling?
+    assert assay.is_modelling?
 
   end
 

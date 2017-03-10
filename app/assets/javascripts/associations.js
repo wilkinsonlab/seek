@@ -10,17 +10,17 @@ function optionsFromArray(array) {
 function nestedOptionsFromJSONArray(array,prompt_option_text) {
     var options = [];
     options.push($j('<option/>').val(0).text(prompt_option_text));
-    
+
     //gather together by parent id
     var parents = {};
     for(var i = 0; i < array.length; i++) {
         var item = array[i];
         if (parents[item.parent_id]) {
             var parent = parents[item.parent_id];
-            parent.children.push({id:item.id,title:item.title})
+            parent.children.push({id:item.id,title:item.title});
         }
         else {
-            var parent = {title:item.parent_title,id:item.parent_id,children:[]}
+            var parent = {title:item.parent_title,id:item.parent_id,children:[]};
             parent.children.push({id:item.id,title:item.title});
             parents[item['parent_id']]=parent;
         }
@@ -183,7 +183,7 @@ $j(document).ready(function () {
         var existingValues = $j('script[data-role="seek-existing-associations"]', self).html();
         if(existingValues) {
             JSON.parse(existingValues).forEach(function (value) {
-                list.add(value)
+                list.add(value);
             });
         }
     });
@@ -192,13 +192,13 @@ $j(document).ready(function () {
         var multilist = new Associations.MultiList($j(this), $j(this).data('groupingAttribute'));
         var self = $j(this);
         $j('[data-role="seek-associations-list"]', self).each(function () {
-            multilist.addList($j(this).data('multilistGroupValue'), $j(this).data('associationList'))
+            multilist.addList($j(this).data('multilistGroupValue'), $j(this).data('associationList'));
         });
 
         var existingValues = $j('script[data-role="seek-existing-associations"]', self).html();
         if(existingValues) {
             JSON.parse(existingValues).forEach(function (value) {
-                multilist.add(value)
+                multilist.add(value);
             });
         }
     });
@@ -243,12 +243,16 @@ $j(document).ready(function () {
     });
 
     $j('[data-role="seek-association-filter"]').keypress(function (e) {
+        if(e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $j('[data-role="seek-association-filter"]').keyup(function (e) {
         // If more than two characters were entered, or the input was cleared, or the ENTER key was pressed..
         var filterField = this;
         if($j(filterField).val().length == 0 || $j(filterField).val().length >= 2 || e.keyCode == 13) {
             Associations.filter(filterField);
-            if(e.keyCode == 13)
-                e.preventDefault();
         }
     });
 

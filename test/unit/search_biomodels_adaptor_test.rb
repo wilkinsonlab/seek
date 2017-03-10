@@ -10,7 +10,7 @@ class SearchBiomodelsAdaptorTest < ActiveSupport::TestCase
   test "initialize" do
     yaml = YAML.load_file("#{Rails.root}/test/fixtures/files/search_adaptor_config")
     adaptor = Seek::BiomodelsSearch::SearchBiomodelsAdaptor.new yaml
-    assert_equal false,adaptor.enabled?
+    assert !adaptor.enabled?
     assert_equal "lib/seek/biomodels_search/_biomodels_resource_list_item.html.erb",adaptor.partial_path
     assert_equal "BioModels Database",adaptor.name
     assert_equal "models",adaptor.search_type
@@ -86,7 +86,7 @@ class SearchBiomodelsAdaptorTest < ActiveSupport::TestCase
         to_return(:status=>200,:body => response4.read)
 
     pub_response = File.new("#{Rails.root}/test/fixtures/files/mocking/pubmed_18846089.txt")
-    stub_request(:post,"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi").
+    stub_request(:post,"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi").
         to_return(:body=>pub_response)
   end
 

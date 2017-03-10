@@ -38,7 +38,6 @@ SEEK::Application.configure do
   Seek::Config.default :tagline_prefix, 'Find, share and exchange <b>Data</b>, <b>Models</b> and <b>Processes</b> within the'
   Seek::Config.default :publish_button_enabled, true
   Seek::Config.default :auth_lookup_enabled,true
-  Seek::Config.default :sample_parser_enabled,false
   Seek::Config.default :external_search_enabled, true
   Seek::Config.default :project_browser_enabled,false
   Seek::Config.default :experimental_features_enabled,false
@@ -131,6 +130,10 @@ SEEK::Application.configure do
   Seek::Config.default :default_associated_projects_access_type, Policy::ACCESSIBLE
   Seek::Config.default :default_consortium_access_type, Policy::VISIBLE
   Seek::Config.default :default_all_visitors_access_type, Policy::ACCESSIBLE
+
+  Seek::Config.default :permissions_popup, Seek::Config::PERMISSION_POPUP_ALWAYS
+
+  Seek::Config.default :auth_lookup_update_batch_size, 10
 
   Seek::Config.fixed :css_prepended,''
   Seek::Config.fixed :css_appended,'biovel_application'

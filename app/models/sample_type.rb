@@ -1,96 +1,75 @@
 class SampleType < ActiveRecord::Base
-  attr_accessible :title, :uuid, :sample_attributes_attributes, :description
+  attr_accessible :title, :uuid, :sample_attributes_attributes,
+                  :description, :uploaded_template, :project_ids, :tags
 
-
-  searchable(:auto_index=>false) do
+  searchable(auto_index: false) do
     text :attribute_search_terms
   end if Seek::Config.solr_enabled
 
   include Seek::ActsAsAsset::Searching
   include Seek::Search::BackgroundReindexing
 
+  include Seek::ProjectAssociation
+
+  # everything concerned with sample type templates
+  include Seek::Templates::SampleTypeTemplateConcerns
+
+  include Seek::Taggable
+
+  acts_as_annotatable name_field: :title
+
   acts_as_uniquely_identifiable
+
+  acts_as_favouritable
 
   has_many :samples, inverse_of: :sample_type
 
-  has_many :sample_attributes, order: :pos, inverse_of: :sample_type, dependent: :destroy
+  has_many :sample_attributes, order: :pos, inverse_of: :sample_type, dependent: :destroy, after_add: :detect_link_back_to_self
 
-  has_one :content_blob, :as => :asset, dependent: :destroy
-
-  alias_method :template, :content_blob
+  has_many :linked_sample_attributes, class_name: 'SampleAttribute', foreign_key: 'linked_sample_type_id'
 
   validates :title, presence: true
 
-  validate :validate_one_title_attribute_present, :validate_template_file, :validate_attribute_title_unique
+  validate :validate_one_title_attribute_present, :validate_attribute_title_unique
 
   accepts_nested_attributes_for :sample_attributes, allow_destroy: true
 
   grouped_pagination
 
-  def self.can_create?
-    User.logged_in_and_member?
-  end
-
   def validate_value?(attribute_name, value)
     attribute = sample_attributes.detect { |attr| attr.title == attribute_name }
-    fail UnknownAttributeException.new("Unknown attribute #{attribute_name}") if attribute.nil?
+    fail UnknownAttributeException.new("Unknown attribute #{attribute_name}") unless attribute
     attribute.validate_value?(value)
   end
 
-  def build_attributes_from_template
-    unless compatible_template_file?
-      errors.add(:base, "Invalid spreadsheet - Couldn't find a 'samples' sheet")
-      return
-    end
-
-    template_handler.column_details.each do |details|
-      is_title = sample_attributes.empty?
-      sample_attributes << SampleAttribute.new(title: details.label,
-                                               sample_attribute_type: default_attribute_type,
-                                               is_title: is_title,
-                                               required: is_title,
-                                               template_column_index: details.column)
-    end
-  end
-
-  #fixes the consistency of the attribute controlled vocabs where the attribute doesn't match.
-  # this is to help when a controlled vocab has been selected in the form, but then the type has been changed
-  # rather than clearing the selected vocab each time
-  def fix_up_controlled_vocabs
-    sample_attributes.each do |attribute|
-      unless attribute.sample_attribute_type.is_controlled_vocab?
-        attribute.sample_controlled_vocab=nil
+  # refreshes existing samples following a change to the sample type. For example when changing the title field
+  def refresh_samples
+    Sample.record_timestamps = false
+    # prevent a job being created when the sample is saved
+    Sample.skip_callback :save, :after, :queue_sample_type_update_job
+    begin
+      disable_authorization_checks do
+        samples.each(&:save)
       end
+    ensure
+      Sample.record_timestamps = true
+      Sample.set_callback :save, :after, :queue_sample_type_update_job
     end
   end
 
-  def compatible_template_file?
-    template_handler.compatible?
+  # fixes inconsistencies following form submission that could cause validation errors
+  # in particular removing linked controlled vocabs or seek_samples after the attribute type may have changed
+  def resolve_inconsistencies
+    resolve_controlled_vocabs_inconsistencies
+    resolve_seek_samples_inconsistencies
   end
 
-  def matches_content_blob?(blob)
-    return false unless template
-    Rails.cache.fetch("st-match-#{blob.id}-#{content_blob.id}") do
-      other_handler = Seek::Templates::SamplesHandler.new(blob)
-      compatible_template_file? && other_handler.compatible? && (template_handler.column_details == other_handler.column_details)
-    end
+  def tags=(tags)
+    tag_annotations(tags, 'sample_type_tags')
   end
 
-  def self.sample_types_matching_content_blob(content_blob)
-    SampleType.all.select do |type|
-      type.matches_content_blob?(content_blob)
-    end
-  end
-
-  def build_samples_from_template(content_blob)
-    samples = []
-    columns = sample_attributes.collect(&:template_column_index)
-
-    handler = Seek::Templates::SamplesHandler.new(content_blob)
-    handler.each_record(columns) do |_row, data|
-      samples << build_sample_from_template_data(data)
-    end
-    samples
+  def tags
+    annotations_with_attribute('sample_type_tags').collect(&:value_content)
   end
 
   def can_download?
@@ -101,56 +80,47 @@ class SampleType < ActiveRecord::Base
     true
   end
 
-  #FIXME: these are just here to satisfy the Searchable module, as a quick fix
-  def assay_type_titles
-    []
-  end
-
-  def technology_type_titles
-    []
+  def self.can_create?
+    can = User.logged_in_and_member? && Seek::Config.samples_enabled
+    can && (!Seek::Config.project_admin_sample_type_restriction || User.current_user.is_admin_or_project_administrator?)
   end
 
   def can_edit?(user = User.current_user)
-    samples.empty?
+    return true if user && user.is_admin? && Seek::Config.samples_enabled
+    can = user && user.person && ((projects & user.person.projects).any?) && Seek::Config.samples_enabled
+    can && (!Seek::Config.project_admin_sample_type_restriction || projects.detect { |project| project.can_be_administered_by?(user) })
   end
 
   def can_delete?(user = User.current_user)
-    samples.empty?
+    can_edit?(user) && samples.empty? &&
+      linked_sample_attributes.detect do|attr|
+        attr.sample_type &&
+          attr.sample_type != self
+      end.nil?
+  end
+
+  def editing_constraints
+    Seek::Samples::SampleTypeEditingConstraints.new(self)
   end
 
   private
 
-  #required by Seek::ActsAsAsset::Searching - don't really need to full search terms, including content provided by Seek::ActsAsAsset::ContentBlobs
-  # just the filename
-  def content_blob_search_terms
-    if content_blob
-      [content_blob.original_filename]
-    else
-      []
+  # fixes the consistency of the attribute controlled vocabs where the attribute doesn't match.
+  # this is to help when a controlled vocab has been selected in the form, but then the type has been changed
+  # rather than clearing the selected vocab each time
+  def resolve_controlled_vocabs_inconsistencies
+    sample_attributes.each do |attribute|
+      attribute.sample_controlled_vocab = nil unless attribute.controlled_vocab?
     end
   end
 
-  def build_sample_from_template_data(data)
-    sample = Sample.new(sample_type: self)
-    data.each do |entry|
-      if attribute = attribute_for_column(entry.column)
-        sample.set_attribute(attribute.hash_key, entry.value)
-      end
+  # fixes the consistency of the attribute seek samples where the attribute doesn't match.
+  # this is to help when a seek sample has been selected in the form, but then the type has been changed
+  # rather than clearing the selected sample type each time
+  def resolve_seek_samples_inconsistencies
+    sample_attributes.each do |attribute|
+      attribute.linked_sample_type = nil unless attribute.seek_sample?
     end
-    sample
-  end
-
-  def attribute_for_column(column)
-    @columns_and_attributes ||= Hash[sample_attributes.collect { |attr| [attr.template_column_index, attr] }]
-    @columns_and_attributes[column]
-  end
-
-  def template_handler
-    @template_handler ||= Seek::Templates::SamplesHandler.new(content_blob)
-  end
-
-  def default_attribute_type
-    SampleAttributeType.default
   end
 
   def validate_one_title_attribute_present
@@ -159,27 +129,31 @@ class SampleType < ActiveRecord::Base
     end
   end
 
-  def validate_template_file
-    if template && !compatible_template_file?
-      errors.add(:template, 'Not a valid template file')
-    end
-  end
-
   def validate_attribute_title_unique
     # TODO: would like to have done this with uniquness{scope: :sample_type_id} on the attribute, but that leads to an exception when being added
     # to the sample type
-    titles = sample_attributes.collect(&:title).collect(&:downcase)
+    titles = attribute_titles.collect(&:downcase)
     dups = titles.select { |title| titles.count(title) > 1 }.uniq
-    unless dups.empty?
-      errors.add(:sample_attributes, "Attribute names must be unique, there are duplicates of #{dups.join(', ')}")
+    if dups.any?
+      dups_text=dups.join(', ')
+      errors.add(:sample_attributes, "Attribute names must be unique, there are duplicates of #{dups_text}")
     end
   end
 
   def attribute_search_terms
+    attribute_titles
+  end
+
+  def attribute_titles
     sample_attributes.collect(&:title)
   end
 
-
+  # callback when the attribute is added to the sample type. it can now be linked to this sample type now we know what it is
+  def detect_link_back_to_self(sample_attribute)
+    if sample_attribute.deferred_link_to_self
+      sample_attribute.linked_sample_type = self
+    end
+  end
 
   class UnknownAttributeException < Exception; end
 end

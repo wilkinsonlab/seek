@@ -44,14 +44,17 @@ module ImagesHelper
   end
 
   def resource_avatar resource,html_options={}
+    image_tag(resource_avatar_path(resource), html_options)
+  end
 
+  def resource_avatar_path(resource)
     if resource.avatar_key
-          image_tag(icon_filename_for_key(resource.avatar_key), html_options)
+      icon_filename_for_key(resource.avatar_key)
     elsif resource.use_mime_type_for_avatar?
-          image_tag(file_type_icon_url(resource), html_options)
+      file_type_icon_url(resource)
     end
   end
-  
+
   def icon_filename_for_key(key)
     (@@icon_dictionary ||= Seek::ImageFileDictionary.instance).image_filename_for_key(key)
   end
@@ -97,7 +100,7 @@ module ImagesHelper
   def delete_icon model_item, user
     item_name = text_for_resource model_item
     if model_item.can_delete?(user)
-      html = content_tag(:li) { image_tag_for_key('destroy',url_for(model_item),"Delete #{item_name.downcase}", {:confirm=>"Are you sure?",:method=>:delete },"Delete #{item_name.downcase}") }
+      html = content_tag(:li) { image_tag_for_key('destroy',url_for(model_item),"Delete #{item_name}", {:confirm=>"Are you sure?",:method=>:delete },"Delete #{item_name}") }
       return html.html_safe
     elsif model_item.can_manage?(user)
       explanation=unable_to_delete_text model_item

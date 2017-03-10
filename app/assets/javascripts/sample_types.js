@@ -1,4 +1,5 @@
 var SampleTypes = {
+
     recalculatePositions: function () {
         $j('#attribute-table tr.sample-attribute .attribute-position').each(function (index, item) {
             $j('.attribute-position-label', $j(item)).html(index + 1);
@@ -13,7 +14,7 @@ var SampleTypes = {
             handle: '.attribute-handle'
         }).on('sortupdate', function() {
             SampleTypes.recalculatePositions();
-        })
+        });
     },
 
     unbindSortable: function () {
@@ -75,6 +76,15 @@ var SampleTypes = {
         else {
             cv_element.hide();
         }
+
+        var is_seek_sample = $j(this).find(':selected').data('is-seek-sample');
+        var seek_sample_element = $j(this).siblings('.sample-type-block');
+        if (is_seek_sample) {
+            seek_sample_element.show();
+        }
+        else {
+            seek_sample_element.hide();
+        }
     }
 
 };
@@ -83,11 +93,11 @@ var SampleTypeControlledVocab = {
     controlledVocabSelectionTagId: "",
     blankControlledVocabModelForm: null,
 
-    //binds the show event to the modal dialogue, for determining with button, and therefore dropdown selection, is linked
+    //binds the show event to the modal dialogue, for determining which button, and therefore dropdown selection, is linked
     //to the form
     bindNewControlledVocabShowEvent: function () {
         $j('#cv-modal').on('show.bs.modal', function (event) {
-            var button = $j(event.relatedTarget) // Button that triggered the modal
+            var button = $j(event.relatedTarget); // Button that triggered the modal
             var dropdown = button.siblings('select');
             SampleTypeControlledVocab.controlledVocabSelectionTagId = (dropdown.prop('id'));
         });
@@ -104,5 +114,22 @@ var SampleTypeControlledVocab = {
         $j('#modal-dialogues').append(SampleTypeControlledVocab.blankControlledVocabModelForm.clone());
         initialiseCVForm();
         SampleTypeControlledVocab.bindNewControlledVocabShowEvent();
+    },
+
+    //selected CV item changed
+    controlledVocabChanged: function() {
+        var id=$j(this).find(':selected')[0].value;
+        var editable=$j(this).find(':selected').data('editable');
+        var link='/sample_controlled_vocabs/'+id+'/edit';
+        var button=$j(this).siblings('.cv-edit-button');
+        if (editable) {
+            button.show();
+            button.attr('disabled',false);
+        }
+        else {
+            button.show();
+            button.attr('disabled',true);
+        }
+        button.prop('href',link);
     }
 };

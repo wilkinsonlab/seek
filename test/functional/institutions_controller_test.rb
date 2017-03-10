@@ -61,7 +61,7 @@ class InstitutionsControllerTest < ActionController::TestCase
   def test_should_destroy_institution
     institution = institutions(:four)
     get :show, :id => institution
-    assert_select "#buttons li", :text => /Delete institution/, :count => 1
+    assert_select "#buttons li", :text => /delete institution/i, :count => 1
 
     assert_difference('Institution.count', -1) do
       delete :destroy, :id => institution
@@ -215,6 +215,12 @@ class InstitutionsControllerTest < ActionController::TestCase
     assert_equal 'update', log.action
     assert_equal person.user, log.culprit
 
+  end
+
+  test 'no resource count stats' do
+    get :index
+    assert_response :success
+    assert_select '#resource-count-stats',:count=>0
   end
 
 end

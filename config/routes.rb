@@ -1,19 +1,5 @@
 SEEK::Application.routes.draw do
 
-  resources :sample_types do
-    collection do
-      post :create_from_template
-    end
-    resources :samples
-    resources :content_blobs do
-      member do
-        get :download
-      end
-    end
-  end
-
-  resources :sample_controlled_vocabs
-
   mount MagicLamp::Genie, :at => (SEEK::Application.config.relative_url_root || "/") + 'magic_lamp'  if defined?(MagicLamp)
   mount Teaspoon::Engine, :at => (SEEK::Application.config.relative_url_root || "/") + "teaspoon" if defined?(Teaspoon)
 
@@ -178,6 +164,7 @@ SEEK::Application.routes.draw do
       get :gatekeeper_decision_result
       get :waiting_approval_assets
       get :select
+      get :items
     end
     resources :projects,:institutions,:assays,:studies,:investigations,:models,:sops,:data_files,:presentations,:publications,:events,:samples,:specimens,:only=>[:index]
     resources :avatars do
@@ -201,9 +188,10 @@ SEEK::Application.routes.draw do
       get :admin_member_roles
       get :storage_report
       post :update_members
+      get :isa_children
     end
     resources :people,:institutions,:assays,:studies,:investigations,:models,:sops,:data_files,:presentations,
-              :publications,:events,:samples,:specimens,:strains,:only=>[:index]
+              :publications,:events,:samples,:specimens,:strains,:search, :only=>[:index]
     resources :avatars do
       member do
         post :select
@@ -264,6 +252,7 @@ SEEK::Application.routes.draw do
       post :publish_related_items
       post :publish
       get :published
+      get :isa_children
     end
   end
 
@@ -290,6 +279,7 @@ SEEK::Application.routes.draw do
       post :publish_related_items
       post :publish
       get :published
+      get :isa_children
     end
     resources :people,:projects,:assays,:investigations,:models,:sops,:data_files,:publications,:only=>[:index]
   end
@@ -319,6 +309,7 @@ SEEK::Application.routes.draw do
       post :publish
       get :published
       get :new_object_based_on_existing_one
+      get :isa_children
     end
     resources :people,:projects,:investigations,:samples, :studies,:models,:sops,:data_files,:publications,:strains,:only=>[:index]
   end
@@ -375,7 +366,6 @@ SEEK::Application.routes.draw do
       #MERGENOTE - this is a destroy, and should be the destroy method, not post since we are not updating or creating something.
       post :destroy_version
       get :mint_doi_confirm
-      get :minted_doi
       post :mint_doi
       get :samples_table
       get :select_sample_type
@@ -383,6 +373,8 @@ SEEK::Application.routes.draw do
       get :extraction_status
       post :extract_samples
       delete :cancel_extraction
+      get :isa_children
+      get :destroy_samples_confirm
     end
     resources :studied_factors do
       collection do
@@ -419,6 +411,7 @@ SEEK::Application.routes.draw do
       post :update_annotations_ajax
       post :new_version
       delete :destroy_version
+      get :isa_children
     end
     resources :content_blobs do
       member do
@@ -456,10 +449,12 @@ SEEK::Application.routes.draw do
       post :publish
       post :execute
       post :request_resource
+      get :simulate
       post :simulate
       delete :destroy_version
       post :mint_doi
       get :mint_doi_confirm
+      get :isa_children
     end
     resources :model_images do
       collection do
@@ -502,6 +497,7 @@ SEEK::Application.routes.draw do
       delete :destroy_version
       post :mint_doi
       get :mint_doi_confirm
+      get :isa_children
     end
     resources :experimental_conditions do
       collection do
@@ -542,6 +538,7 @@ SEEK::Application.routes.draw do
       get :reject_activation_confirmation
       post :spawn_project
       get :storage_report
+      get :isa_children
     end
     resources :people,:projects, :institutions, :investigations, :studies, :assays,
               :data_files, :models, :sops, :presentations, :events, :publications
@@ -551,6 +548,8 @@ SEEK::Application.routes.draw do
     collection do
       get :typeahead
       get :preview
+      get :query_authors
+      get :query_authors_typeahead
       post :fetch_preview
       post :items_for_result
       post :resource_in_tab
@@ -671,8 +670,32 @@ SEEK::Application.routes.draw do
     end
     member do
       post :update_annotations_ajax
+      get :isa_children
     end
   end
+
+  ### SAMPLE TYPES ###
+
+  resources :sample_types do
+    collection do
+      post :create_from_template
+      get :select
+      get :filter_for_select
+    end
+    member do
+      get :template_details
+    end
+    resources :samples
+    resources :content_blobs do
+      member do
+        get :download
+      end
+    end
+  end
+
+  ### SAMPLE CONTROLLED VOCABS ###
+
+  resources :sample_controlled_vocabs
 
   ### ASSAY AND TECHNOLOGY TYPES ###
 
@@ -681,7 +704,6 @@ SEEK::Application.routes.draw do
   get '/technology_types/',:to=>"technology_types#show",:as=>"technology_types"
 
 
-  resources :statistics, :only => [:index]
   ### MISC MATCHES ###
   match '/search/' => 'search#index', :as => :search
   match '/search/save' => 'search#save', :as => :save_search
@@ -730,6 +752,8 @@ SEEK::Application.routes.draw do
   match "/500" => "errors#error_500"
 
   match "/zenodo_oauth_callback" => "zenodo/oauth2/callbacks#callback"
+
+  get "/citation/*doi(.:format)" => "citations#fetch", :as => :citation
 
   # This is a legacy wild controller route that's not recommended for RESTful applications.
   # Note: This route will make all actions in every controller accessible via GET requests.

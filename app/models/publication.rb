@@ -28,6 +28,13 @@ class Publication < ActiveRecord::Base
            :as => :other_object,
            :dependent => :destroy
 
+  VALID_DOI_REGEX = /\A(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?!["&\'<>])\S)+)\z/
+  VALID_PUBMED_REGEX = /\A(([1-9])([0-9]{0,7}))\z/
+  # Note that the PubMed regex deliberately does not allow versions
+  
+  validates :doi, format: { with: VALID_DOI_REGEX , message: "is invalid"}, :allow_blank => true
+  validates :pubmed_id, :numericality => {:greater_than => 0, message: "is invalid"}, :allow_blank => true
+ 
   #validation differences between OpenSEEK and the VLN SEEK
   validates_uniqueness_of :pubmed_id , :allow_nil => true, :allow_blank => true, :if => "Seek::Config.is_virtualliver"
   validates_uniqueness_of :doi ,:allow_nil => true, :allow_blank => true, :if => "Seek::Config.is_virtualliver"
@@ -36,9 +43,20 @@ class Publication < ActiveRecord::Base
   validate :check_uniqueness_of_identifier_within_project, :unless => "Seek::Config.is_virtualliver"
   validate :check_uniqueness_of_title_within_project, :unless => "Seek::Config.is_virtualliver"
 
-  validate :check_identifier_present
-
   after_update :update_creators_from_publication_authors
+
+  # http://bioruby.org/rdoc/Bio/Reference.html#method-i-format
+  # key for the file-extension and format used in the route
+  # value contains the format used by bioruby that name for the view and mimetype for the response
+  EXPORT_TYPES = Hash.new{ |hash, key| raise( "Export type #{ key } is not supported")}.update(
+    # http://filext.com/file-extension/ENW
+    :enw         => { :format => "endnote", :name => "Endnote", :mimetype => "application/x-endnote-refer"},
+    # http://filext.com/file-extension/bibtex
+    :bibtex      => { :format => "bibtex" , :name => "BiBTeX" , :mimetype => "application/x-bibtex"},  # (option available)
+    # http://filext.com/file-extension/EMBL
+    # ftp://ftp.embl.de/pub/databases/embl/doc/usrman.txt
+    :embl        => { :format => "embl"   , :name => "EMBL"   , :mimetype => "chemical/x-embl-dl-nucleotide"}
+  )
 
   def update_creators_from_publication_authors
     self.creators = seek_authors.map(&:person)
@@ -198,8 +216,11 @@ class Publication < ActiveRecord::Base
     action == 'create'
   end
 
-  def endnote
-   bio_reference.endnote
+  # export the publication as one of the available types:
+  # http://bioruby.org/rdoc/Bio/Reference.html
+  # @export_type a registered mime_type that is a valid key to EXPORT_TYPES
+  def export(export_type)
+    bio_reference.format(EXPORT_TYPES[export_type][:format])
   end
 
   def publication_author_names
@@ -226,21 +247,6 @@ class Publication < ActiveRecord::Base
                           :authors => publication_authors.map {|e| e.person ? [e.person.last_name, e.person.first_name].join(', ') : [e.last_name, e.first_name].join(', ')},
                           :year => published_date.year}.with_indifferent_access)
     end
-  end
-
-  def check_identifier_present
-    if doi.blank? && pubmed_id.blank?
-      self.errors[:base] << "Please specify either a PubMed ID or DOI"
-      return false
-    end
-
-    if !doi.blank? && !pubmed_id.blank?
-      self.errors[:base] << "Can't have both a PubMed ID and a DOI"
-      return false
-    end
-
-    true
-
   end
 
   def check_uniqueness_of_identifier_within_project

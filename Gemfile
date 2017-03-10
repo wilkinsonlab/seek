@@ -14,12 +14,13 @@ gem 'hpricot', '~>0.8.2'
 gem 'libxml-ruby', '>=2.6.0', require: 'libxml'
 gem 'uuid', '~>2.3'
 gem 'RedCloth', '4.2.9'
-gem 'simple-spreadsheet-extractor', '~>0.15.0'
+gem 'simple-spreadsheet-extractor', '~>0.15.2'
+gem 'sample-template-generator'
 gem 'rmagick', '2.15.2'
 gem 'rest-client'
 gem 'factory_girl', '2.6.4'
 gem 'rubyzip', '~> 1.1.4'
-gem 'bio', '~> 1.5.0'
+gem 'bio', '~> 1.5.1'
 gem 'sunspot_rails', '~>2.2.0'
 gem 'sunspot_solr', '~>2.2.0'
 gem 'savon', '1.1.0'
@@ -97,9 +98,6 @@ gem 'bootstrap-sass', '3.1.1.0'
 gem 'sass-rails', '>= 3.2'
 
 gem 'ro-bundle'
-gem 'bootstrap-tagsinput-rails'
-gem 'bootstrap-typeahead-rails'
-gem 'bootstrap-multiselect-rails'
 gem 'handlebars_assets'
 gem 'zenodo-client', git: 'https://github.com/seek4science/zenodo-client.git'
 
@@ -108,9 +106,22 @@ gem 'seedbank'
 
 gem 'rspec-rails'
 
+gem 'citeproc-ruby', '~> 1.1.4'
+gem 'citeproc', '~> 1.0.4'
+gem 'csl-styles', '~> 1.0.1.7'
+
+# javascript assets from https://rails-assets.org
+gem 'bundler', '>= 1.8.4'
+source 'https://rails-assets.org' do
+  gem 'rails-assets-bootstrap-multiselect', '~> 0.9.13'
+  gem 'rails-assets-bootstrap-tagsinput', '~> 0.8.0'
+  gem 'rails-assets-typeahead.js', '~> 0.10.5'
+  gem 'rails-assets-clipboard', '~> 1.5.12'
+end
+
 group :assets do
   gem 'turbo-sprockets-rails3'
-  gem 'yui-compressor'
+  gem 'uglifier'
 end
 
 group :production do
@@ -129,6 +140,8 @@ group :development do
   gem 'guard-rubycritic', require: false
   gem 'rails_best_practices'
   gem 'quiet_assets'
+  gem 'ruby-debug-ide', '>= 0.6.1.beta2', require: false
+  gem 'debase', '>= 0.2.2.beta8', require: false
 end
 
 group :test do

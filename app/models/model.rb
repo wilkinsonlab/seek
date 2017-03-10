@@ -1,7 +1,7 @@
-
 require 'acts_as_versioned_resource'
 require 'explicit_versioning'
 require 'title_trimmer'
+require 'datacite/acts_as_doi_mintable'
 
 class Model < ActiveRecord::Base
 
@@ -44,13 +44,9 @@ class Model < ActiveRecord::Base
   belongs_to :model_type
   belongs_to :model_format
 
-  #DEPRECATED
-  has_many :deprecated_sample_assets,:dependent=>:destroy,:as => :asset
-  has_many :deprecated_samples, :through => :sample_assets
-
-
   explicit_versioning(:version_column => "version") do
     include Seek::Models::ModelExtraction
+    acts_as_doi_mintable(proxy: :parent)
     acts_as_versioned_resource
     acts_as_favouritable
 

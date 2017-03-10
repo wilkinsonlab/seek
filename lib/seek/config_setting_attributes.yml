@@ -9,7 +9,6 @@ events_enabled:
 bioportal_api_key:
 jerm_enabled:
 email_enabled:
-no_reply:
 jws_enabled:
 jws_online_root:
 internal_help_enabled:
@@ -74,18 +73,12 @@ project_hierarchy_enabled:
 tabs_lazy_load_enabled:
 admin_impersonation_enabled:
 auth_lookup_enabled:
-sample_parent_term:
-specimen_culture_starting_date:
-sample_age:
-specimen_creators:
-sample_parser_enabled:
 publish_button_enabled:
 project_browser_enabled:
 experimental_features_enabled:
 pdf_conversion_enabled:
 admin_impersonation_enabled:
 auth_lookup_enabled:
-sample_parser_enabled:
 guide_box_enabled:
 treatments_enabled:
 factors_studied_enabled:
@@ -153,6 +146,8 @@ project_news_number_of_entries:
   convert: :to_i
 community_news_number_of_entries:
   convert: :to_i
+recent_contributions_number_of_entries:
+  convert: :to_i
 home_feeds_cache_timeout:
   convert: :to_i
 time_lock_doi_for:
@@ -170,3 +165,9 @@ news_feed_urls:
 news_number_of_entries:
   convert: :to_i
 front_page_buttons_enabled:
+permissions_popup:
+  convert: :to_i
+auth_lookup_update_batch_size:
+  convert: :to_i
+samples_enabled:
+project_admin_sample_type_restriction:

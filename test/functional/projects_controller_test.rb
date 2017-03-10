@@ -56,6 +56,19 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_includes assigns(:project).ancestors,parent
   end
 
+  test "create project with default license" do
+    person = Factory(:programme_administrator)
+    login_as(person)
+    prog = person.programmes.first
+
+    assert_difference("Project.count") do
+      post :create, :project => {:title=>"proj with license",:default_license=>'CC-BY-SA-4.0',:programme_id=>prog.id}
+    end
+
+    project = assigns(:project)
+    assert_equal 'CC-BY-SA-4.0',project.default_license
+  end
+
   test "create project with programme" do
     person = Factory(:programme_administrator)
     login_as(person)
@@ -137,11 +150,12 @@ class ProjectsControllerTest < ActionController::TestCase
   end
 
   def test_should_update_project
-    put :update, :id => Factory(:project,:description=>"ffffff"), :project => {:title=>"pppp"}
+    put :update, :id => Factory(:project,:description=>"ffffff"), :project => {:title=>"pppp", :default_license=>'CC-BY-SA-4.0'}
     assert_redirected_to project_path(assigns(:project))
     proj = assigns(:project)
     assert_equal "pppp",proj.title
     assert_equal "ffffff",proj.description
+    assert_equal 'CC-BY-SA-4.0',proj.default_license
   end
 
   def test_should_destroy_project
@@ -1376,6 +1390,17 @@ class ProjectsControllerTest < ActionController::TestCase
     get :storage_report, id: project.id
     assert_redirected_to :root
     refute_nil flash[:error]
+  end
+
+  test 'no resource count stats' do
+    get :index
+    assert_response :success
+    assert_select '#resource-count-stats',:count=>0
+  end
+
+  test 'search route' do
+    assert_generates '/projects/1/search', controller: 'search', action: 'index', project_id: '1'
+    assert_routing '/projects/1/search',{controller:"search",action:"index",project_id:"1"}
   end
 
   private

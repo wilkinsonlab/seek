@@ -8,7 +8,8 @@ class PublicationsControllerTest < ActionController::TestCase
   include RestTestCases
   include SharingFormTestHelper
   include RdfTestCases
-  
+  include MockHelper
+
   def setup
     login_as(:quentin)
   end
@@ -122,6 +123,57 @@ class PublicationsControllerTest < ActionController::TestCase
   test "should show publication" do
     get :show, :id => publications(:one)
     assert_response :success
+  end
+
+  test "should export publication as endnote" do
+    publication_formatter_mock
+    get :show, :id => publications(:one), :format => "enw"
+    assert_response :success
+    assert_match( /%0 Journal Article.*/, response.body)
+    assert_match( /.*%A Hendrickson, W\. A\..*/, response.body)
+    assert_match( /.*%A Ward, K\. B\..*/, response.body) 
+    assert_match( /.*%D 1975.*/, response.body) 
+    assert_match( /.*%T Atomic models for the polypeptide backbones of myohemerythrin and hemerythrin\..*/, response.body) 
+    assert_match( /.*%J Biochem Biophys Res Commun.*/, response.body) 
+    assert_match( /.*%V 66.*/, response.body) 
+    assert_match( /.*%N 4.*/, response.body) 
+    assert_match( /.*%P 1349-1356.*/, response.body) 
+    assert_match( /.*%M 5.*/, response.body) 
+    assert_match( /.*%U http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/5.*/, response.body) 
+    assert_match( /.*%K Animals.*/, response.body) 
+    assert_match( /.*%K Cnidaria.*/, response.body) 
+    assert_match( /.*%K Computers.*/, response.body) 
+    assert_match( /.*%K \*Hemerythrin.*/, response.body) 
+    assert_match( /.*%K \*Metalloproteins.*/, response.body) 
+    assert_match( /.*%K Models, Molecular.*/, response.body) 
+    assert_match( /.*%K \*Muscle Proteins.*/, response.body) 
+    assert_match( /.*%K Protein Conformation.*/, response.body) 
+    assert_match( /.*%K Species Specificity.*/, response.body) 
+  end
+
+  test "should export publication as bibtex" do
+    publication_formatter_mock
+    get :show, :id => publications(:one), :format => "bibtex"
+    assert_response :success
+    assert_match( /@article{PMID:5,.*/, response.body) 
+    assert_match( /.*author.*/, response.body)
+    assert_match( /.*title.*/, response.body)
+    assert_match( /.*journal.*/, response.body)
+    assert_match( /.*year.*/, response.body)
+    assert_match( /.*number.*/, response.body)
+    assert_match( /.*pages.*/, response.body)
+    assert_match( /.*url.*/, response.body)
+  end
+
+  test "should export publication as embl" do
+    publication_formatter_mock
+    get :show, :id => publications(:one), :format => "embl"
+    assert_response :success
+    assert_match( /RX   PUBMED; 5\..*/, response.body) 
+    assert_match( /.*RT   \"Atomic models for the polypeptide backbones of myohemerythrin and\nRT   hemerythrin.\";.*/, response.body)
+    assert_match( /.*RA   Hendrickson W\.A\., Ward K\.B\.;.*/, response.body)
+    assert_match( /.*RL   Biochem Biophys Res Commun 66\(4\):1349-1356\(1975\)\..*/, response.body)
+    assert_match( /.*XX.*/, response.body)
   end
 
   test "should get edit" do
@@ -428,6 +480,7 @@ class PublicationsControllerTest < ActionController::TestCase
   end
 
   test "should display the right author order after some authors are associate with seek-profiles" do
+    doi_citation_mock
     mock_crossref(:email=>"sowen@cs.man.ac.uk",:doi=>"10.1016/j.future.2011.08.004",:content_file=>"cross_ref5.xml")
     assert_difference('Publication.count') do
       post :create, :publication => {:doi => "10.1016/j.future.2011.08.004", :project_ids=>[projects(:sysmo_project).id] } #10.1371/journal.pone.0004803.g001 10.1093/nar/gkl320
@@ -455,9 +508,7 @@ class PublicationsControllerTest < ActionController::TestCase
     publication.reload
     joined_original_authors = original_authors.join(', ')
     get :show, :id => publication.id
-    assert_equal true, @response.body.include?(joined_original_authors)
-
-
+    assert @response.body.include?(joined_original_authors)
   end
 
   test 'should update page pagination when changing the setting from admin' do
@@ -519,21 +570,73 @@ class PublicationsControllerTest < ActionController::TestCase
     end
   end
 
+  test "query single authors for typeahead" do
+    query = "Bloggs"
+    get :query_authors_typeahead, :format => :json, :full_name => query
+    assert_response :success
+    authors = JSON.parse(@response.body)
+    assert_equal 1, authors.length, authors
+    assert authors[0].key?('person_id'), "missing author person_id"
+    assert authors[0].key?('first_name'), "missing author first name"
+    assert authors[0].key?('last_name'), "missing author last name"
+    assert authors[0].key?('count'), "missing author publication count"
+    assert_equal "J", authors[0]['first_name']
+    assert_equal "Bloggs", authors[0]['last_name']
+    assert_nil authors[0]['person_id']
+    assert_equal 1, authors[0]['count']
+  end
+
+  test "query single author for typeahead that is unknown" do
+    query = "Nobody knows this person"
+    get :query_authors_typeahead, :format => :json, :full_name => query
+    assert_response :success
+    authors = JSON.parse(@response.body)
+    assert_equal 0, authors.length
+  end
+
+  test "query authors for initilization" do
+    query_authors = {
+      "0" => { :full_name => "J Bloggs" },
+      "1" => { :full_name => "J Bauers" }
+    }
+    get :query_authors, :format => :json, :as => :json, :authors => query_authors
+    assert_response :success
+    authors = JSON.parse(@response.body)
+    assert_equal 2, authors.length, authors
+    assert authors[0].key?('person_id'), "missing author person_id"
+    assert authors[0].key?('first_name'), "missing author first name"
+    assert authors[0].key?('last_name'), "missing author last name"
+    assert authors[0].key?('count'), "missing author publication count"
+    assert_equal "J", authors[0]['first_name']
+    assert_equal "Bloggs", authors[0]['last_name']
+    assert_nil authors[0]['person_id']
+    assert_equal 1, authors[0]['count']
+
+    assert authors[1].key?('person_id'), "missing author person_id"
+    assert authors[1].key?('first_name'), "missing author first name"
+    assert authors[1].key?('last_name'), "missing author last name"
+    assert authors[1].key?('count'), "missing author publication count"
+    assert_equal "J", authors[1]['first_name']
+    assert_equal "Bauers", authors[1]['last_name']
+    assert_nil authors[1]['person_id']
+    assert_equal 0, authors[1]['count']
+  end
+
   def mock_crossref options
-    url= "http://www.crossref.org/openurl/"
+    url= "https://www.crossref.org/openurl/"
     params={}
     params[:format] = "unixref"
     params[:id] = "doi:"+options[:doi]
     params[:pid] = options[:email]
     params[:noredirect] = true
-    url = "http://www.crossref.org/openurl/?" + params.to_param
+    url = "https://www.crossref.org/openurl/?" + params.to_param
     file=options[:content_file]
     stub_request(:get,url).to_return(:body=>File.new("#{Rails.root}/test/fixtures/files/mocking/#{file}"))
 
   end
 
   def mock_pubmed options
-    url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+    url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     file=options[:content_file]
     stub_request(:post,url).to_return(:body=>File.new("#{Rails.root}/test/fixtures/files/mocking/#{file}"))
   end

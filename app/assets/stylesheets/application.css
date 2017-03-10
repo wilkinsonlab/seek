@@ -31,8 +31,8 @@
 *= require settings
 *= require new_styles
 *= require jquery-ui-drag-drop
+*= require bootstrap-typeahead
 *= require bootstrap-tagsinput
-*= require bootstrap-typeahead-rails
 *= require calendar_date_select/default
 *= require organisms
 *= require tweaks
@@ -40,4 +40,5 @@
 *= require DataTables-1.10.11/dataTables.bootstrap
 *= require DataTables-1.10.11/select.bootstrap
 *= require DataTables-1.10.11/buttons.bootstrap
+*= require jstree
 */

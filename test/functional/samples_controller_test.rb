@@ -1,9 +1,14 @@
 require 'test_helper'
 
 class SamplesControllerTest < ActionController::TestCase
+
   include AuthenticatedTestHelper
   include SharingFormTestHelper
   include HtmlHelper
+
+  def setup
+    Factory(:person)#to prevent person being first person and therefore admin
+  end
 
   test 'index' do
     Factory(:sample, policy: Factory(:public_policy))
@@ -12,11 +17,10 @@ class SamplesControllerTest < ActionController::TestCase
     assert_select '#samples-table table', count: 0
   end
 
-  test 'new' do
+  test 'new without sample type id' do
     login_as(Factory(:person))
     get :new
-    assert_response :success
-    assert assigns(:sample)
+    assert_redirected_to select_sample_types_path
   end
 
   test 'show' do
@@ -35,12 +39,14 @@ class SamplesControllerTest < ActionController::TestCase
 
   test 'create' do
     person = Factory(:person)
+    creator = Factory(:person)
     login_as(person)
     type = Factory(:patient_sample_type)
     assert_difference('Sample.count') do
       post :create, sample: { sample_type_id: type.id,
                               data: { full_name: 'George Osborne', age: '22', weight: '22.1', postcode: 'M13 9PL' },
-                              project_ids: [person.projects.first.id] }
+                              project_ids: [person.projects.first.id] },
+           :creators=>[[creator.name,creator.id]].to_json
     end
     assert assigns(:sample)
     sample = assigns(:sample)
@@ -50,6 +56,10 @@ class SamplesControllerTest < ActionController::TestCase
     assert_equal '22.1', sample.get_attribute(:weight)
     assert_equal 'M13 9PL', sample.get_attribute(:postcode)
     assert_equal person.user, sample.contributor
+    assert_equal [creator],sample.creators
+
+    #job should have been triggered
+    assert SampleTypeUpdateJob.new(type,false).exists?
   end
 
   test 'create and update with boolean' do
@@ -64,13 +74,13 @@ class SamplesControllerTest < ActionController::TestCase
     end
     assert_not_nil sample = assigns(:sample)
     assert_equal 'ttt', sample.get_attribute(:the_title)
-    assert_equal true, sample.get_attribute(:bool)
+    assert sample.get_attribute(:bool)
     assert_no_difference('Sample.count') do
       put :update, id: sample.id, sample: { data: { the_title: 'ttt', bool: '0' } }
     end
     assert_not_nil sample = assigns(:sample)
     assert_equal 'ttt', sample.get_attribute(:the_title)
-    assert_equal false, sample.get_attribute(:bool)
+    assert !sample.get_attribute(:bool)
   end
 
   test 'show sample with boolean' do
@@ -89,17 +99,35 @@ class SamplesControllerTest < ActionController::TestCase
 
   test 'edit' do
     login_as(Factory(:person))
+
     get :edit, id: populated_patient_sample.id
+
     assert_response :success
+  end
+
+  test "can't edit if extracted from a data file" do
+    person = Factory(:person)
+    sample = Factory(:sample_from_file, contributor: person)
+    login_as(person)
+
+    get :edit, id: sample.id
+
+    assert_redirected_to sample_path(sample)
+    assert_not_nil flash[:error]
   end
 
   test 'update' do
     login_as(Factory(:person))
+    creator = Factory(:person)
     sample = populated_patient_sample
     type_id = sample.sample_type.id
 
+    assert_empty sample.creators
+
     assert_no_difference('Sample.count') do
-      put :update, id: sample.id, sample: { data: { full_name: 'Jesus Jones', age: '47', postcode: 'M13 9QL' } }
+      put :update, id: sample.id, sample: { data: { full_name: 'Jesus Jones', age: '47', postcode: 'M13 9QL' } },
+          :creators=>[[creator.name,creator.id]].to_json
+      assert_equal [creator],sample.creators
     end
 
     assert assigns(:sample)
@@ -112,6 +140,8 @@ class SamplesControllerTest < ActionController::TestCase
     assert_equal '47', updated_sample.get_attribute(:age)
     assert_nil updated_sample.get_attribute(:weight)
     assert_equal 'M13 9QL', updated_sample.get_attribute(:postcode)
+    #job should have been triggered
+    assert SampleTypeUpdateJob.new(sample.sample_type,false).exists?
   end
 
   test 'associate with project on create' do
@@ -350,6 +380,45 @@ class SamplesControllerTest < ActionController::TestCase
 
     assert_response :success
     assert_select 'div.related-items a[href=?]', strain_path(strain), text: /#{strain.title}/
+  end
+
+  test 'cannot access when disabled' do
+    person = Factory(:person)
+    login_as(person.user)
+    with_config_value :samples_enabled,false do
+
+      get :show, id: populated_patient_sample.id
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      flash[:error]=nil
+
+      get :index
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      flash[:error]=nil
+
+      get :new
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+    end
+
+  end
+
+  test 'destroy' do
+    person=Factory(:person)
+    sample = Factory(:patient_sample,contributor:person)
+    type = sample.sample_type
+    login_as(person.user)
+    assert sample.can_delete?
+    assert_difference("Sample.count",-1) do
+      delete :destroy, id: sample
+    end
+    assert_redirected_to root_path
+    #job should have been triggered
+    assert SampleTypeUpdateJob.new(type,false).exists?
   end
 
   private
