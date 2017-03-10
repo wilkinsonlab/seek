@@ -55,7 +55,7 @@ module SamplesHelper
           DateTime.parse(value).strftime('%e %B %Y %H:%M:%S')
         when Seek::Samples::BaseType::SEEK_STRAIN
           seek_strain_attribute_display(value)
-        when 'IceId'
+        when Seek::Samples::BaseType::ICE_ID
           link_to(value, "https://ice.synbiochem.co.uk/entry/#{value}", target: :_blank)
         when Seek::Samples::BaseType::SEEK_SAMPLE
           seek_sample_attribute_display(value)
