@@ -1,5 +1,4 @@
 class Mailer < ActionMailer::Base
-
   def feedback(user, topic, details, send_anonymously)
     @anon = send_anonymously
     @anon = true if user.try(:person).nil?
@@ -90,7 +89,7 @@ class Mailer < ActionMailer::Base
     @person = user.person
     @user = user
     @projects = new_member_details.projects
-    @projects_with_admins = @projects.select{|p| p.project_administrators.any?}
+    @projects_with_admins = @projects.select { |p| p.project_administrators.any? }
 
     mail(from: Seek::Config.noreply_sender,
          to: admin_emails,
@@ -100,28 +99,26 @@ class Mailer < ActionMailer::Base
 
   def project_changed(project)
     @project = project
-    recipients = admin_emails | @project.project_administrators.collect{|m| m.email_with_name}
+    recipients = admin_emails | @project.project_administrators.collect(&:email_with_name)
     subject = "The #{Seek::Config.application_name} #{t('project')} #{@project.title} information has been changed"
 
-    mail(:from=>Seek::Config.noreply_sender,
-         :to=>recipients,
-         :subject=>subject
-    )
+    mail(from: Seek::Config.noreply_sender,
+         to: recipients,
+         subject: subject
+        )
   end
 
   def contact_project_administrator_new_user(project_administrator, params, user)
     new_member_details = Seek::Mail::NewMemberAffiliationDetails.new(params)
     @details = new_member_details.message
     @person = user.person
-    @projects = new_member_details.projects.select{|project| project_administrator.is_project_administrator?(project)}
+    @projects = new_member_details.projects.select { |project| project_administrator.is_project_administrator?(project) }
     @user = user
     mail(from: Seek::Config.noreply_sender,
          to: project_administrator_email(project_administrator),
          reply_to: user.person.email_with_name,
          subject: "#{Seek::Config.application_name} member signed up, please assign this person to the #{I18n.t('project').pluralize.downcase} of which you are #{I18n.t('project')} Administrator")
   end
-
-
 
   def resources_harvested(harvester_responses, user)
     @resources = harvester_resources
@@ -134,7 +131,7 @@ class Mailer < ActionMailer::Base
 
   def announcement_notification(site_announcement, notifiee_info)
     # FIXME: this should really be part of the site_announcements plugin
-    @site_announcement  = site_announcement
+    @site_announcement = site_announcement
     @notifiee_info = notifiee_info
     mail(from: Seek::Config.noreply_sender,
          to: notifiee_info.notifiee.email_with_name,
@@ -163,7 +160,7 @@ class Mailer < ActionMailer::Base
     mail(from: Seek::Config.noreply_sender,
          to: admin_emails,
          subject: "The #{Seek::Config.application_name} #{t('programme')} #{programme.title} was created and needs activating"
-    )
+        )
   end
 
   def programme_activated(programme)
@@ -172,7 +169,7 @@ class Mailer < ActionMailer::Base
     mail(from: Seek::Config.noreply_sender,
          to: programme.programme_administrators.map(&:email_with_name),
          subject: "The #{Seek::Config.application_name} #{t('programme')} #{programme.title} has been activated"
-    )
+        )
   end
 
   def programme_rejected(programme, reason)
@@ -181,20 +178,20 @@ class Mailer < ActionMailer::Base
     mail(from: Seek::Config.noreply_sender,
          to: programme.programme_administrators.map(&:email_with_name),
          subject: "The #{Seek::Config.application_name} #{t('programme')} #{programme.title} has been rejected"
-    )
+        )
   end
 
   def report_run_problem(person, run)
     @person = person
     @run = run
-    @error_outputs = run.outputs.select { |o| o.value_is_error? }
+    @error_outputs = run.outputs.select(&:value_is_error?)
 
     attachments['taverna_server_log.txt'] = File.read(run.log.path) unless run.log.path.nil?
     attachments['portal_log.txt'] = run.failure_message unless run.failure_message.nil?
 
-    mail(:from=>Seek::Config.noreply_sender,
-         :to=>Seek::Config.support_email_address,
-         :subject=>"#{Seek::Config.application_name} user has reported a problem with a workflow run")
+    mail(from: Seek::Config.noreply_sender,
+         to: Seek::Config.support_email_address,
+         subject: "#{Seek::Config.application_name} user has reported a problem with a workflow run")
   end
 
   private

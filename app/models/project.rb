@@ -65,8 +65,8 @@ class Project < ActiveRecord::Base
   scope :default_order, order('title')
   scope :without_programme, conditions: 'programme_id IS NULL'
 
-  validates :web_page, url: {allow_nil: true, allow_blank: true}
-  validates :wiki_page, url: {allow_nil: true, allow_blank: true}
+  validates :web_page, url: { allow_nil: true, allow_blank: true }
+  validates :wiki_page, url: { allow_nil: true, allow_blank: true }
 
   validate :lineage_ancestor_cannot_be_self
 

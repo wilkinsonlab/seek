@@ -1,16 +1,15 @@
 require 'seek/research_objects/acts_as_snapshottable'
 
 class Study < ActiveRecord::Base
-
   include Seek::Rdf::RdfGeneration
   include Seek::ProjectHierarchies::ItemsProjectsExtension if Seek::Config.project_hierarchy_enabled
 
-  #FIXME: needs to be declared before acts_as_isa, else ProjectAssociation module gets pulled in
+  # FIXME: needs to be declared before acts_as_isa, else ProjectAssociation module gets pulled in
   def projects
     investigation.try(:projects) || []
   end
 
-  searchable(:auto_index => false) do
+  searchable(auto_index: false) do
     text :experimentalists
     text :person_responsible do
       person_responsible.try(:name)
@@ -24,11 +23,11 @@ class Study < ActiveRecord::Base
 
   belongs_to :investigation
   has_many :assays
-  belongs_to :person_responsible, :class_name => "Person"
+  belongs_to :person_responsible, class_name: 'Person'
 
-  validates :investigation, :presence => true
+  validates :investigation, presence: true
 
-  ["data_file","sop","model"].each do |type|
+  %w(data_file sop model).each do |type|
     eval <<-END_EVAL
       def #{type}_versions
         assays.collect{|a| a.send(:#{type}_versions)}.flatten.uniq
@@ -48,18 +47,14 @@ class Study < ActiveRecord::Base
     projects.map(&:id)
   end
 
-  def state_allows_delete? *args
+  def state_allows_delete?(*args)
     assays.empty? && super
   end
 
   def clone_with_associations
-    new_object= self.dup
-    new_object.policy = self.policy.deep_copy
+    new_object = dup
+    new_object.policy = policy.deep_copy
 
-    return new_object
+    new_object
   end
-
-
-
-
 end

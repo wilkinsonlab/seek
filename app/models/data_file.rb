@@ -36,7 +36,7 @@ class DataFile < ActiveRecord::Base
     acts_as_versioned_resource
     acts_as_favouritable
 
-    has_one :content_blob,:primary_key => :data_file_id,:foreign_key => :asset_id,:conditions => Proc.new{["content_blobs.asset_version =? AND content_blobs.asset_type =?", version,parent.class.name]}
+    has_one :content_blob,primary_key: :data_file_id,foreign_key: :asset_id,conditions: Proc.new{["content_blobs.asset_version =? AND content_blobs.asset_type =?", version,parent.class.name]}
 
     has_many :studied_factors, primary_key: 'data_file_id', foreign_key: 'data_file_id', conditions: proc { ['studied_factors.data_file_version =?', version] }
 
@@ -62,10 +62,10 @@ class DataFile < ActiveRecord::Base
 
   def included_to_be_copied?(symbol)
     case symbol.to_s
-      when 'activity_logs', 'versions', 'attributions', 'relationships', 'inverse_relationships', 'annotations'
-        return false
-      else
-        return true
+    when 'activity_logs', 'versions', 'attributions', 'relationships', 'inverse_relationships', 'annotations'
+      return false
+    else
+      return true
     end
   end
 
@@ -163,7 +163,7 @@ class DataFile < ActiveRecord::Base
     extracted
   end
 
-  #creates a new DataFile that registers an openBIS dataset
+  # creates a new DataFile that registers an openBIS dataset
   def self.build_from_openbis(openbis_endpoint,dataset_perm_id)
     dataset = Seek::Openbis::Dataset.new(openbis_endpoint,dataset_perm_id)
     df=dataset.create_seek_datafile
@@ -171,9 +171,8 @@ class DataFile < ActiveRecord::Base
     df
   end
 
-  #indicates that this is an openBIS based DataFile
+  # indicates that this is an openBIS based DataFile
   def openbis?
     content_blob && content_blob.openbis?
   end
-
 end

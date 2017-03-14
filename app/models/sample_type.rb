@@ -124,7 +124,7 @@ class SampleType < ActiveRecord::Base
   end
 
   def validate_one_title_attribute_present
-    unless (count = sample_attributes.select(&:is_title).count) == 1
+    unless (count = sample_attributes.count(&:is_title)) == 1
       errors.add(:sample_attributes, "There must be 1 attribute which is the title, currently there are #{count}")
     end
   end
@@ -135,7 +135,7 @@ class SampleType < ActiveRecord::Base
     titles = attribute_titles.collect(&:downcase)
     dups = titles.select { |title| titles.count(title) > 1 }.uniq
     if dups.any?
-      dups_text=dups.join(', ')
+      dups_text = dups.join(', ')
       errors.add(:sample_attributes, "Attribute names must be unique, there are duplicates of #{dups_text}")
     end
   end

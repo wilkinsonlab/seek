@@ -1,6 +1,6 @@
 class WorkflowInputPort < ActiveRecord::Base
-  belongs_to :port_type, :class_name => 'WorkflowInputPortType'
-  belongs_to :example_data_file, :class_name => 'DataFile'
+  belongs_to :port_type, class_name: 'WorkflowInputPortType'
+  belongs_to :example_data_file, class_name: 'DataFile'
   belongs_to :workflow
 
   before_save :set_version
@@ -8,6 +8,6 @@ class WorkflowInputPort < ActiveRecord::Base
   private
 
   def set_version
-    self.workflow_version = self.workflow.version
+    self.workflow_version = workflow.version
   end
 end

@@ -1,7 +1,7 @@
 class FavouriteGroupMembership < ActiveRecord::Base
   belongs_to :favourite_group
   belongs_to :person
-  
+
   validates_presence_of :favourite_group_id, :person_id, :access_type
 
   after_commit :queue_update_auth_table
@@ -15,11 +15,10 @@ class FavouriteGroupMembership < ActiveRecord::Base
   end
 
   def allows_action?(action)
-    Seek::Permissions::Authorization.access_type_allows_action?(action, self.access_type)
+    Seek::Permissions::Authorization.access_type_allows_action?(action, access_type)
   end
 
   def affected_people
     [person]
   end
-
 end

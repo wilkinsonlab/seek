@@ -3,9 +3,9 @@ class SavedSearch < ActiveRecord::Base
 
   acts_as_favouritable
 
-  validates :user_id, :uniqueness => { :scope =>  [:search_query, :search_type, :include_external_search] }
+  validates :user_id, uniqueness: { scope: [:search_query, :search_type, :include_external_search] }
 
-  #generates the title, for the Favourite tooltip for example.
+  # generates the title, for the Favourite tooltip for example.
   def title
     if include_external_search
       "Search: '#{search_query}' (#{search_type} - including external sites)"

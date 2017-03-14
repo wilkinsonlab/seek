@@ -3,7 +3,7 @@ require 'zip'
 class Sweep < ActiveRecord::Base
   acts_as_asset
 
-  has_many :runs, :class_name => 'TavernaPlayer::Run', :dependent => :destroy
+  has_many :runs, class_name: 'TavernaPlayer::Run', dependent: :destroy
   belongs_to :workflow
 
   accepts_nested_attributes_for :runs
@@ -21,19 +21,19 @@ class Sweep < ActiveRecord::Base
   end
 
   def cancelled?
-    runs.all? { |run| run.cancelled? }
+    runs.all?(&:cancelled?)
   end
 
   def finished?
-    runs.all? { |run| run.finished? }
+    runs.all?(&:finished?)
   end
 
   def running?
-    runs.any? { |run| run.running? }
+    runs.any?(&:running?)
   end
 
   def complete?
-    runs.all? { |run| run.complete? }
+    runs.all?(&:complete?)
   end
 
   def state
@@ -49,16 +49,16 @@ class Sweep < ActiveRecord::Base
   end
 
   def self.by_owner(uid)
-    where(:contributor_id => uid)
+    where(contributor_id: uid)
   end
 
   def build_zip(output_list)
-    unique_id = output_list.map {|o| o.id}.hash.to_s(16).gsub('-','0')
+    unique_id = output_list.map(&:id).hash.to_s(16).tr('-', '0')
     path = "#{Rails.root}/tmp/#{name.parameterize('_')}_results_#{unique_id}.zip"
 
-    unless File.exists?(path)
+    unless File.exist?(path)
       Zip::File.open(path, Zip::File::CREATE) do |zip_file|
-        output_list.group_by {|o| o.name}.each do |output_name, outputs|
+        output_list.group_by(&:name).each do |output_name, outputs|
           output_dir_name = output_name
           zip_file.mkdir(output_dir_name) # Make folder for outputs
           outputs.each do |output|
@@ -83,5 +83,4 @@ class Sweep < ActiveRecord::Base
   def executed_workflow
     workflow.find_version(workflow_version)
   end
-
 end

@@ -3,7 +3,7 @@ class SuggestedAssayType < ActiveRecord::Base
   include Seek::Ontologies::SuggestedType
 
   def ontology_readers
-    [Seek::Ontologies::AssayTypeReader.instance,Seek::Ontologies::ModellingAnalysisTypeReader.instance]
+    [Seek::Ontologies::AssayTypeReader.instance, Seek::Ontologies::ModellingAnalysisTypeReader.instance]
   end
 
   def self.all_term_types

@@ -8,15 +8,15 @@ class Avatar < ActiveRecord::Base
   acts_as_fleximage do
     image_directory Seek::Config.avatar_filestore_path
     use_creation_date_based_directories false
-    image_storage_format      :png
-    require_image             true
-    missing_image_message     'is required'
-    invalid_image_message     'was not a readable image'
+    image_storage_format :png
+    require_image true
+    missing_image_message 'is required'
+    invalid_image_message 'was not a readable image'
   end
   acts_as_fleximage_extension
 
   attr_accessor :skip_owner_validation
-  validates :owner,:presence=>true, :unless=>:skip_owner_validation
+  validates :owner, presence: true, unless: :skip_owner_validation
 
   belongs_to :owner,
              polymorphic: true
@@ -54,9 +54,7 @@ class Avatar < ActiveRecord::Base
   def public_asset_url(size = nil)
     size ||= 200
 
-    if size == 'large'
-      size = LARGE_SIZE
-    end
+    size = LARGE_SIZE if size == 'large'
     size = "#{size}x#{size}" if size.is_a?(Numeric)
 
     size = filter_size(size)
@@ -65,9 +63,7 @@ class Avatar < ActiveRecord::Base
     public_avatars_path = File.join(Rails.configuration.assets.prefix, 'avatar-images')
     public_avatar_dir = File.join(Rails.root, 'public', public_avatars_path)
 
-    unless File.exist?(public_avatar_dir)
-      FileUtils.mkdir_p public_avatar_dir
-    end
+    FileUtils.mkdir_p public_avatar_dir unless File.exist?(public_avatar_dir)
 
     avatar_filename = "#{id}-#{size}.#{self.class.image_storage_format}"
     avatar_public_file_path = File.join(public_avatar_dir, avatar_filename)

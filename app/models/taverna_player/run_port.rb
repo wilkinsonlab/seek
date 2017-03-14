@@ -19,17 +19,15 @@ module TavernaPlayer
           else
             ".#{ext}"
           end
-        else
-          nil
         end
       end
     end
 
     # Overriding because we have modified the results zip file to give file extensions to each output value
     def deep_value(index)
-      path = index.map { |i| i + 1 }.join("/")
+      path = index.map { |i| i + 1 }.join('/')
       if value_is_error?(index)
-        path += ".error"
+        path += '.error'
       elsif !(ext = file_extension).nil?
         path += ext
       end
@@ -53,7 +51,6 @@ module TavernaPlayer
   class RunPort::Input < RunPort
     include TavernaPlayer::Concerns::Models::Input
     include TavernaPlayer::Concerns::Models::DataFileInput
-
   end
 
   class RunPort::Output < RunPort

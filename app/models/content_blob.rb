@@ -94,8 +94,8 @@ class ContentBlob < ActiveRecord::Base
   def show_as_external_link?
     return false if custom_integration? || url.blank?
     return true if unhandled_url_scheme?
-    no_local_copy =  !file_exists?
-    html_content =  is_webpage? || content_type == 'text/html'
+    no_local_copy = !file_exists?
+    html_content = is_webpage? || content_type == 'text/html'
     show_as_link = Seek::Config.show_as_external_link_enabled ? no_local_copy : html_content
     show_as_link
   end
@@ -149,8 +149,6 @@ class ContentBlob < ActiveRecord::Base
     end
   end
 
-
-
   def file
     @file ||= File.open(filepath)
   end
@@ -177,7 +175,7 @@ class ContentBlob < ActiveRecord::Base
     end
   end
 
-  def search_terms    
+  def search_terms
     if is_text?
       if is_indexable_text?
         [original_filename, url, file_extension, text_contents_for_search] | url_search_terms
@@ -199,7 +197,7 @@ class ContentBlob < ActiveRecord::Base
     url_search_terms
   end
 
-  #whether this content blob represents a custom integration, such as integrated with openBIS
+  # whether this content blob represents a custom integration, such as integrated with openBIS
   def custom_integration?
     openbis?
   end
@@ -215,7 +213,7 @@ class ContentBlob < ActiveRecord::Base
   private
 
   def valid_url?
-    self.url && self.url =~ URI::DEFAULT_PARSER.regexp[:ABS_URI]
+    url && url =~ URI::DEFAULT_PARSER.regexp[:ABS_URI]
   end
 
   def remote_headers
@@ -281,13 +279,11 @@ class ContentBlob < ActiveRecord::Base
 
   def remote_content_handler
     return nil unless valid_url?
-    case URI(self.url).scheme
-      when 'ftp'
-        Seek::DownloadHandling::FTPHandler.new(url)
-      when 'http', 'https'
-        Seek::DownloadHandling::HTTPHandler.new(url)
-      else
-        nil
+    case URI(url).scheme
+    when 'ftp'
+      Seek::DownloadHandling::FTPHandler.new(url)
+    when 'http', 'https'
+      Seek::DownloadHandling::HTTPHandler.new(url)
     end
   end
 end

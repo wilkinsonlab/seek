@@ -1,2 +1,8 @@
+AllCops:
+  Exclude:
+    - app/models/data_file.rb
+    - app/models/model.rb
+
 Metrics/LineLength:
   Max: 120
+

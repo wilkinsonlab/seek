@@ -3,7 +3,7 @@ require 'RedCloth'
 class HelpDocument < ActiveRecord::Base
   validates_presence_of :title, :identifier
   validates_uniqueness_of :identifier
-  validates :identifier, format: { with: /\A[a-z0-9][-a-z0-9]*\Z/ ,message: 'is invalid. Please only use lower-case alphanumeric characters and hyphens.'}
+  validates :identifier, format: { with: /\A[a-z0-9][-a-z0-9]*\Z/, message: 'is invalid. Please only use lower-case alphanumeric characters and hyphens.' }
 
   has_many :attachments, class_name: 'HelpAttachment', dependent: :destroy
   has_many :images, class_name: 'HelpImage', dependent: :destroy
