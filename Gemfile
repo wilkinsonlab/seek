@@ -165,6 +165,7 @@ group :test do
 end
 
 group :test, :development do
+  gem 'test-unit'
   gem 'magic_lamp'
   gem 'webmock'
   gem 'teaspoon'

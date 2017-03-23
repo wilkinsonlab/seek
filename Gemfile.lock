@@ -745,6 +745,7 @@ GEM
       teaspoon (>= 1.0.0)
     term-ansicolor (1.3.0)
       tins (~> 1.0)
+    test-unit (2.1.9.0)
     test_after_commit (0.4.1)
       activerecord (>= 3.2)
     thor (0.19.1)
@@ -932,6 +933,7 @@ DEPENDENCIES
   taverna-t2flow
   teaspoon
   teaspoon-mocha
+  test-unit
   test_after_commit
   transaction_isolation
   turbo-sprockets-rails3
