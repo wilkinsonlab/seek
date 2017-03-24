@@ -157,15 +157,13 @@ end
 group :test do
   gem 'test_after_commit'
   gem 'ruby-prof'
-  gem 'minitest', '~> 4.0'
+  gem 'minitest'
   gem 'minitest-reporters'
   gem 'coveralls', require: false
   gem 'sunspot_matchers'
   gem 'database_cleaner'
-end
-
-group :test, :development do
-  gem 'test-unit'
+  gem 'test-unit', '~> 3.2.3'
+  gem 'test-unit-minitest'
   gem 'magic_lamp'
   gem 'webmock'
   gem 'teaspoon'
